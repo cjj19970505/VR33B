@@ -149,5 +149,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\VR33B\VR33B.csproj">
+      <Project>{b01e6711-0a33-44e0-8274-51e6725f4a0b}</Project>
+      <Name>VR33B</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

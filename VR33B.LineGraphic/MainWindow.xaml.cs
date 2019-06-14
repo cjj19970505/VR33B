@@ -21,10 +21,14 @@ namespace VR33B.LineGraphic
     /// </summary>
     public partial class MainWindow : Window
     {
+        VR33BTerminal VR33BTerminal;
         public MainWindow()
         {
             InitializeComponent();
-            
+
+
+            VR33BTerminal = new VR33BTerminal();
+
             double[] x = new double[200];
             for (int i = 0; i < x.Length; i++)
                 x[i] = 3.1415 * i / (x.Length - 1);
@@ -38,7 +42,7 @@ namespace VR33B.LineGraphic
 
                 Lines.Children.Add(lg);
                 lg.Stroke = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0));
-                if(i == 0)
+                if (i == 0)
                 {
                     lg.Description = cg.Description = "Axis-X";
                     lg.Stroke = cg.Stroke = new SolidColorBrush(Colors.Red);
@@ -50,8 +54,8 @@ namespace VR33B.LineGraphic
                 }
                 if (i == 2)
                 {
-                    lg.Description =cg.Description= "Axis-Z";
-                    lg.Stroke =cg.Stroke= new SolidColorBrush(Colors.Blue);
+                    lg.Description = cg.Description = "Axis-Z";
+                    lg.Stroke = cg.Stroke = new SolidColorBrush(Colors.Blue);
                 }
                 lg.StrokeThickness = 2;
                 lg.Plot(x, x.Select(v => Math.Sin(v + i / 10.0)).ToArray());
@@ -63,7 +67,29 @@ namespace VR33B.LineGraphic
                 cg.Size = size;
                 //cg.Size = size.ConvertAll(v => { return 100.0; }).ToArray();
                 //cg.MarkersBatchSize = 2;
-                           }
+            }
+        }
+
+        private void OpenSerialPortBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                VR33BTerminal.SerialPort.Open();
+            }
+            catch(Exception)
+            {
+                System.Diagnostics.Debug.WriteLine("PORT IS USING");
+            }
+            
+        }
+
+        private void SendTestMsgBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if(VR33BTerminal.SerialPort.IsOpen)
+            {
+                //VR33BTerminal.SerialPort.Write(new byte[] { 0xff, 0x03, 0x00, 0x01, 0x00, 0x01, 0xc0, 0x14 }, 0, 8);
+                VR33BTerminal.Send(false ,0x01, true, new byte[] { 0, 1 });
+            }
         }
     }
 }
