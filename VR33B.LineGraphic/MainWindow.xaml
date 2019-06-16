@@ -1,0 +1,29 @@
+﻿<Window x:Class="VR33B.LineGraphic.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d3="clr-namespace:InteractiveDataDisplay.WPF;assembly=InteractiveDataDisplay.WPF"
+        xmlns:local="clr-namespace:VR33B.LineGraphic"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="1213.5">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="84*"/>
+            <ColumnDefinition Width="115*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button x:Name="OpenSerialPortBtn" Content="Open" HorizontalAlignment="Left" Margin="21,96,0,0" VerticalAlignment="Top" Width="75" Click="OpenSerialPortBtn_Click"/>
+        <Button x:Name="SendTestMsgBtn" Content="ReadAddr" HorizontalAlignment="Left" Margin="21,143,0,0" VerticalAlignment="Top" Width="75" Click="SendTestMsgBtn_Click"/>
+        <Button x:Name="ReadAccRangeBtn" Content="ReadRange" HorizontalAlignment="Left" Margin="21,207,0,0" VerticalAlignment="Top" Width="75" Click="ReadAccRangeBtn_Click"/>
+        <ListBox x:Name="SendCommandListBox" HorizontalAlignment="Left" Height="156" Margin="155,36,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2"/>
+        <ComboBox x:Name="SetAccRangeComboBox" HorizontalAlignment="Left" Margin="21,307,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="SetAccRangeComboBox_SelectionChanged"/>
+        <ListBox x:Name="ReceiveCommandListBox" HorizontalAlignment="Left" Height="162" Margin="155,207,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2"/>
+        <Button x:Name="ReadAccmeterButton" Content="ReadAcc" HorizontalAlignment="Left" Margin="21,231,0,0" VerticalAlignment="Top" Width="75" Click="ReadAccmeterButton_Click"/>
+        <CheckBox x:Name="SamplingCheckBox" Content="Sampling" HorizontalAlignment="Left" Margin="21,267,0,0" VerticalAlignment="Top" Checked="SamplingCheckBox_Checked" Unchecked="SamplingCheckBox_Unchecked"/>
+        <Grid x:Name="VR33BGraphGrid" Grid.Column="1" HorizontalAlignment="Left" Height="344" Margin="10,36,0,0" VerticalAlignment="Top" Width="647">
+            <local:VR33BGraph/>
+        </Grid>
+
+    </Grid>
+</Window>

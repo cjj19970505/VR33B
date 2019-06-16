@@ -1,0 +1,28 @@
+﻿<Window x:Class="VR33B.LineGraphicTest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d3="clr-namespace:InteractiveDataDisplay.WPF;assembly=InteractiveDataDisplay.WPF"
+        xmlns:local="clr-namespace:VR33B.LineGraphicTest"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <d3:Chart x:Name="Plotter">
+            <d3:Chart.Title>
+                <TextBlock HorizontalAlignment="Center">ACCELERATOR</TextBlock>
+            </d3:Chart.Title>
+            <d3:Chart.LegendContent>
+                <d3:LegendItemsPanel>
+                    <d3:LegendItemsPanel.Resources>
+                        <DataTemplate x:Key="InteractiveDataDisplay.WPF.LineGraph">
+                            <local:AxisLegendView/>
+
+                        </DataTemplate>
+                    </d3:LegendItemsPanel.Resources>
+                </d3:LegendItemsPanel>
+            </d3:Chart.LegendContent>
+            <Grid Name="Lines"/>
+        </d3:Chart>
+    </Grid>
+</Window>
