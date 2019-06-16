@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.IO.Ports;
 
 namespace VR33B
-{    
+{
     public class VR33BTerminal
     {
         public byte Address = 0x02;
@@ -16,7 +16,7 @@ namespace VR33B
         {
             set
             {
-                if(_SerialPort != null)
+                if (_SerialPort != null)
                 {
                     _SerialPort.DataReceived -= SerialPort_DataReceived;
                 }
@@ -41,6 +41,7 @@ namespace VR33B
         TimeSpan _SerialPortReceiveBufferStayOvertimeTimeSpan;
 
         public event EventHandler<VR33BReceiveData> OnReceived;
+        public event EventHandler<VR33BSendData> OnSerialPortSent;
 
         public VR33BTerminal()
         {
@@ -68,7 +69,7 @@ namespace VR33B
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             DateTime nowDateTime = DateTime.Now;
-            if(nowDateTime - _LatestSerialPortReceiveTime > _SerialPortReceiveBufferStayOvertimeTimeSpan)
+            if (nowDateTime - _LatestSerialPortReceiveTime > _SerialPortReceiveBufferStayOvertimeTimeSpan)
             {
                 _ReceivedBytesBuffer.Clear();
             }
@@ -77,30 +78,30 @@ namespace VR33B
             var stream = serialPort.BaseStream;
             byte[] buffer = new byte[serialPort.BytesToRead];
             stream.Read(buffer, 0, buffer.Length);
-            lock(_ReceivedBytesBufferLock)
+            lock (_ReceivedBytesBufferLock)
             {
                 _ReceivedBytesBuffer.AddRange(buffer);
-                while(_ReceivedBytesBuffer.Count>0)
+                while (_ReceivedBytesBuffer.Count > 0)
                 {
-                    
+
                     int possibleMessageStartIndex = _ReceivedBytesBuffer.FindIndex(item => item == Address);
-                    if(possibleMessageStartIndex < 0)
+                    if (possibleMessageStartIndex < 0)
                     {
                         _ReceivedBytesBuffer.Clear();
                         break;
                     }
-                    if(possibleMessageStartIndex > 0)
+                    if (possibleMessageStartIndex > 0)
                     {
                         _ReceivedBytesBuffer.RemoveRange(0, possibleMessageStartIndex);
                         possibleMessageStartIndex = 0;
                     }
-                    if(_ReceivedBytesBuffer.Count < 6)
+                    if (_ReceivedBytesBuffer.Count < 6)
                     {
                         //可能并没接受完一条消息
                         break;
                     }
                     int possibleDataLength = _ReceivedBytesBuffer[2];
-                    if(_ReceivedBytesBuffer.Count < 5+possibleDataLength)
+                    if (_ReceivedBytesBuffer.Count < 5 + possibleDataLength)
                     {
                         //可能并没接受完一条消息
                         break;
@@ -109,11 +110,11 @@ namespace VR33B
                     byte possibleCrcCodeHigh = _ReceivedBytesBuffer[2 + possibleDataLength + 2];
                     UInt16 possibleCrcCode = (UInt16)(((0xff & possibleCrcCodeHigh) << 8) | (0xff & possibleCrcCodeLow));
                     UInt16 trueCrcCode = VR33BUtility.Crc16(_ReceivedBytesBuffer.GetRange(0, 3 + possibleDataLength).ToArray());
-                    if(possibleCrcCode == trueCrcCode)
+                    if (possibleCrcCode == trueCrcCode)
                     {
                         byte[] message = _ReceivedBytesBuffer.GetRange(0, 5 + possibleDataLength).ToArray();
                         _ReceivedBytesBuffer.RemoveRange(0, 5 + possibleDataLength);
-                        
+
 
                         OnReceived?.Invoke(this, VR33BReceiveData.FromByteArray(message));
                     }
@@ -124,19 +125,15 @@ namespace VR33B
                 }
             }
 
-            
+
         }
         public void Send(VR33BSendData sendData)
         {
             SerialPort.Write(sendData.SendBytes, 0, sendData.SendBytes.Length);
+            OnSerialPortSent?.Invoke(this, sendData);
         }
 
-        public void SendCommand(ICommand command)
-        {
-            
-        }
-
-        public Task<(bool Success, VR33BReceiveData Response)> SendCommandAsync(ICommand command)
+        public Task<(bool Success, VR33BReceiveData Response, CommandSession CommandSession)> SendCommandAsync(ICommand command)
         {
             CommandSession session = new CommandSession(command);
             lock (_CommandSessionQueueLock)
@@ -145,16 +142,16 @@ namespace VR33B
             }
             return Task.Run(() =>
             {
-                while(session.CommandState == VR33BCommandState.Sending || session.CommandState == VR33BCommandState.Idle)
+                while (session.CommandState == VR33BCommandState.Sending || session.CommandState == VR33BCommandState.Idle)
                 {
-                    
+
                 }
 
-                if(session.CommandState == VR33BCommandState.Success)
+                if (session.CommandState == VR33BCommandState.Success)
                 {
-                    return (true, session.Response);
+                    return (true, session.Response, session);
                 }
-                return (false, session.Response);
+                return (false, session.Response, session);
             });
         }
 
@@ -164,19 +161,19 @@ namespace VR33B
             {
                 DateTime sessionStartTime = DateTime.Now;
                 int sessionRepeatCount = 0;
-                DateTime singleRepeatStartTime = sessionStartTime;
+                DateTime singleCommandStartTime = sessionStartTime;
 
                 CommandSession CurrentSession = null;
                 EventHandler<VR33BReceiveData> onSerialReceive = (object sender, VR33BReceiveData e) =>
                 {
-                    if(CurrentSession == null)
+                    if (CurrentSession == null)
                     {
                         return;
                     }
-                    if(CurrentSession.CommandState == VR33BCommandState.Sending)
+                    if (CurrentSession.CommandState == VR33BCommandState.Sending)
                     {
                         bool isResponse = CurrentSession.Command.IsResponse(e);
-                        if(isResponse)
+                        if (isResponse)
                         {
                             CurrentSession.Response = e;
                             CurrentSession.CommandState = VR33BCommandState.Success;
@@ -185,42 +182,54 @@ namespace VR33B
                 };
 
                 OnReceived += onSerialReceive;
-                
+
 
                 while (true)
                 {
-                    lock(_CommandSessionQueueLock)
+                    lock (_CommandSessionQueueLock)
                     {
-                        if(_CommandSessionQueue.Count == 0 && (CurrentSession == null || CurrentSession.CommandState == VR33BCommandState.Success || CurrentSession.CommandState == VR33BCommandState.Failed))
+                        if (_CommandSessionQueue.Count == 0 && (CurrentSession == null || CurrentSession.CommandState == VR33BCommandState.Success || CurrentSession.CommandState == VR33BCommandState.Failed))
                         {
                             continue;
                         }
-                        else if(_CommandSessionQueue.Count != 0)
+                        else if (_CommandSessionQueue.Count != 0)
                         {
                             CurrentSession = _CommandSessionQueue.Dequeue();
                         }
                     }
-                    if(CurrentSession.CommandState == VR33BCommandState.Idle)
+                    if (CurrentSession.CommandState == VR33BCommandState.Idle)
                     {
-                        sessionStartTime = singleRepeatStartTime = DateTime.Now;
+                        sessionRepeatCount = 0;
+                        sessionStartTime = singleCommandStartTime = DateTime.Now;
                         CurrentSession.CommandState = VR33BCommandState.Sending;
-                        Send(CurrentSession.Command.SendData);
-                        
+                        Send(CurrentSession.Command.SendDataSequence[0].SendData);
+
                     }
-                    else if(CurrentSession.CommandState == VR33BCommandState.Sending)
+                    else if (CurrentSession.CommandState == VR33BCommandState.Sending)
                     {
                         DateTime now = DateTime.Now;
-                        if(now - singleRepeatStartTime >= CurrentSession.Command.RepeatTimeSpanWhenNoResponse)
+
+
+                        if (now - singleCommandStartTime >= CurrentSession.CurrentSendDataAndInterval.IntervalTimeSpan)
                         {
-                            if(sessionRepeatCount >= CurrentSession.Command.MaximumRepeatCount)
+                            if (CurrentSession.CurrentSendingDataIndex == CurrentSession.Command.SendDataSequence.Length - 1)
+                            {
+                                sessionRepeatCount++;
+                                CurrentSession.CurrentSendingDataIndex = 0;
+                            }
+                            else
+                            {
+                                CurrentSession.CurrentSendingDataIndex++;
+                            }
+                            if (sessionRepeatCount > CurrentSession.Command.MaximumRepeatCount)
                             {
                                 CurrentSession.CommandState = VR33BCommandState.Failed;
                             }
                             else
                             {
-                                singleRepeatStartTime = now;
-                                Send(CurrentSession.Command.SendData);
+                                Send(CurrentSession.CurrentSendDataAndInterval.SendData);
                             }
+                            singleCommandStartTime = now;
                         }
                     }
                 }
@@ -228,7 +237,7 @@ namespace VR33B
         }
     }
 
-    public enum VR33BCommandState { Idle, Sending, Success, Failed}
+    public enum VR33BCommandState { Idle, Sending, Success, Failed }
 
     /// <summary>
     /// 这货是这么工作的
@@ -240,33 +249,46 @@ namespace VR33B
         /// <summary>
         /// 若没有收到回复，则间隔多长时间重新发一次
         /// </summary>
-        TimeSpan RepeatTimeSpanWhenNoResponse { get; }
+        //TimeSpan RepeatTimeSpanWhenNoResponse { get; }
+
         /// <summary>
         /// 最多发送多少次，超过这个次数宣告失败
         /// 如果为0，那就是不用重复发送
         /// </summary>
         int MaximumRepeatCount { get; }
 
-        VR33BSendData SendData { get; }
+        /// <summary>
+        /// IntervalTimeSpan是当前指令和发送下一条指令的时间间隔
+        /// 最后一条指令的IntervalTimeSpan就是最后一条指令和下一次重复的指令的间隔
+        /// </summary>
+        (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence { get; }
 
         bool IsResponse(VR33BReceiveData receiveData);
     }
 
-    internal class CommandSession
+    public class CommandSession
     {
         public ICommand Command { get; set; }
-        public VR33BCommandState CommandState { get; set; }
+        public VR33BCommandState CommandState { get; internal set; }
 
-        public VR33BReceiveData Response { get; set; }
-        
-        public CommandSession(ICommand command)
+        internal int CurrentSendingDataIndex { get; set; }
+        internal (VR33BSendData SendData, TimeSpan IntervalTimeSpan) CurrentSendDataAndInterval
+        {
+            get
+            {
+                return Command.SendDataSequence[CurrentSendingDataIndex];
+            }
+        }
+
+        public VR33BReceiveData Response { get; internal set; }
+
+        internal CommandSession(ICommand command)
         {
             Command = command;
             CommandState = VR33BCommandState.Idle;
+            CurrentSendingDataIndex = 0;
+            Response = new VR33BReceiveData();
         }
-
-        
-
     }
     public enum VR33BMessageType { Read = 0x03, Write = 0x06 };
     public struct VR33BSendData
@@ -317,6 +339,22 @@ namespace VR33B
 
             }
         }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendFormat("[DeviceAddress:{0:x2} |", DeviceAddress);
+            sb.AppendFormat("ReadOrWrite:{0:x2} |", (byte)ReadOrWrite);
+            sb.AppendFormat("RegisterAddress:{0:x2} |", RegisterAddress);
+            sb.Append("Data:");
+
+            foreach (var b in Data)
+            {
+                sb.AppendFormat("{0:x2} ", b);
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
     }
 
     public struct VR33BReceiveData
@@ -340,8 +378,8 @@ namespace VR33B
             sb.AppendFormat("[DeviceAddress:{0:x2} |", DeviceAddress);
             sb.AppendFormat("ReadOrWrite:{0:x2} |", (byte)ReadOrWrite);
             sb.Append("Data:");
-            
-            foreach(var b in Data)
+
+            foreach (var b in Data)
             {
                 sb.AppendFormat("{0:x2} ", b);
             }
@@ -380,15 +418,6 @@ namespace VR33B
 
     public class ReadAddressCommand : ICommand
     {
-        private VR33BSendData _SendData;
-        public TimeSpan RepeatTimeSpanWhenNoResponse
-        {
-            get
-            {
-                return new TimeSpan(0, 0, 0, 0, 50);
-            }
-        }
-
         public int MaximumRepeatCount
         {
             get
@@ -397,17 +426,19 @@ namespace VR33B
             }
         }
 
-        public VR33BSendData SendData
+
+        private (VR33BSendData, TimeSpan)[] _SendDataSequence;
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
         {
             get
             {
-                return _SendData;
+                return _SendDataSequence;
             }
         }
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            if(receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 1)
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 1)
             {
                 return true;
             }
@@ -416,26 +447,19 @@ namespace VR33B
 
         public ReadAddressCommand()
         {
-            _SendData = new VR33BSendData
+            var sendData = new VR33BSendData
             {
                 DeviceAddress = 0xff,
                 ReadOrWrite = VR33BMessageType.Read,
                 RegisterAddress = 0x01,
                 Data = new byte[] { 0, 1 }
             };
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
         }
     }
 
     public class ReadAccelerometerRange : ICommand
     {
-        private VR33BSendData _SendData;
-        public TimeSpan RepeatTimeSpanWhenNoResponse
-        {
-            get
-            {
-                return new TimeSpan(0, 0, 0, 0, 50);
-            }
-        }
 
         public int MaximumRepeatCount
         {
@@ -445,11 +469,13 @@ namespace VR33B
             }
         }
 
-        public VR33BSendData SendData
+        private readonly (VR33BSendData, TimeSpan)[] _SendDataSequence;
+
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
         {
             get
             {
-                return _SendData;
+                return _SendDataSequence;
             }
         }
 
@@ -464,14 +490,74 @@ namespace VR33B
 
         public ReadAccelerometerRange(VR33BTerminal vr33bTerminal)
         {
-            _SendData = new VR33BSendData
+            var sendData = new VR33BSendData
             {
                 DeviceAddress = vr33bTerminal.Address,
                 ReadOrWrite = VR33BMessageType.Read,
                 RegisterAddress = 0x0016,
                 Data = new byte[] { 0, 0 }
             };
+
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
         }
     }
+    public enum AccelerometerRange { _2g = 0x02, _4g = 0x04, _8g = 0x08, _16g = 0x16 };
+    public class SetAccelerometerRangeCommand : ICommand
+    {
+        public AccelerometerRange Range { get; set; }
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 10;
+            }
+        }
 
+        private readonly (VR33BSendData, TimeSpan)[] _SendDataSequence;
+
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
+        {
+            get
+            {
+                return _SendDataSequence;
+            }
+        }
+
+        public bool IsResponse(VR33BReceiveData receiveData)
+        {
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 1)
+            {
+                if(receiveData.Data[0] == (byte)Range)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public SetAccelerometerRangeCommand(VR33BTerminal vr33bTerminal, AccelerometerRange range)
+        {
+            Range = range;
+            var setData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.Address,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0016,
+                Data = new byte[] { BitConverter.GetBytes((UInt16)Range)[1], BitConverter.GetBytes((UInt16)Range)[0] }
+            };
+            var readData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.Address,
+                ReadOrWrite = VR33BMessageType.Read,
+                RegisterAddress = 0x0016,
+                Data = new byte[] { 0, 0 }
+            };
+
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[]
+            {
+                (setData, new TimeSpan(0, 0, 0, 0, 100)),
+                (readData, new TimeSpan(0, 0, 0, 0, 50))
+            };
+        }
+    }
 }

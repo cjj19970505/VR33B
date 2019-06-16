@@ -13,7 +13,7 @@
                 <TextBlock HorizontalAlignment="Center">ACCELERATOR</TextBlock>
             </d3:Chart.Title>
             <d3:Chart.LegendContent>
-                
+
                 <d3:LegendItemsPanel>
                     <d3:LegendItemsPanel.Resources>
                         <DataTemplate x:Key="InteractiveDataDisplay.WPF.LineGraph">
@@ -33,5 +33,8 @@
         <Button x:Name="OpenSerialPortBtn" Content="Open" HorizontalAlignment="Left" Margin="107,99,0,0" VerticalAlignment="Top" Width="75" Click="OpenSerialPortBtn_Click"/>
         <Button x:Name="SendTestMsgBtn" Content="ReadAddr" HorizontalAlignment="Left" Margin="107,146,0,0" VerticalAlignment="Top" Width="75" Click="SendTestMsgBtn_Click"/>
         <Button x:Name="ReadAccRangeBtn" Content="ReadRange" HorizontalAlignment="Left" Margin="107,210,0,0" VerticalAlignment="Top" Width="75" Click="ReadAccRangeBtn_Click"/>
+        <ListBox x:Name="SendCommandListBox" HorizontalAlignment="Left" Height="276" Margin="256,71,0,0" VerticalAlignment="Top" Width="492"/>
+        <ComboBox x:Name="SetAccRangeComboBox" HorizontalAlignment="Left" Margin="107,271,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="SetAccRangeComboBox_SelectionChanged"/>
+
     </Grid>
 </Window>

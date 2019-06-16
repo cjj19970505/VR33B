@@ -1,6 +1,7 @@
 ﻿using InteractiveDataDisplay.WPF;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,13 +23,25 @@ namespace VR33B.LineGraphic
     public partial class MainWindow : Window
     {
         VR33BTerminal VR33BTerminal;
+        ObservableCollection<string> SendDataStrs;
+        ObservableCollection<AccelerometerRange> SetAccRangeComboBoxSource;
         public MainWindow()
         {
             InitializeComponent();
+            SendDataStrs = new ObservableCollection<string>();
+            SendCommandListBox.ItemsSource = SendDataStrs;
+            SendDataStrs.Add("FUCK");
+            SendDataStrs.Add("sdf");
+
+            SetAccRangeComboBoxSource = new ObservableCollection<AccelerometerRange>() { AccelerometerRange._2g, AccelerometerRange._4g, AccelerometerRange._8g, AccelerometerRange._16g };
+            SetAccRangeComboBox.ItemsSource = SetAccRangeComboBoxSource;
+
 
 
             VR33BTerminal = new VR33BTerminal();
             VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
+
+            VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
 
             double[] x = new double[200];
             for (int i = 0; i < x.Length; i++)
@@ -71,6 +84,15 @@ namespace VR33B.LineGraphic
             }
         }
 
+        private void VR33BTerminal_OnSerialPortSent(object sender, VR33BSendData e)
+        {
+            this.Dispatcher.Invoke(new Action(() => {
+                SendDataStrs.Add(e.ToString());
+                
+            }));
+            
+        }
+
         private void VR33BTerminal_OnReceived(object sender, VR33BReceiveData e)
         {
             //System.Diagnostics.Debug.WriteLine(e.ToString());
@@ -78,6 +100,8 @@ namespace VR33B.LineGraphic
 
         private void OpenSerialPortBtn_Click(object sender, RoutedEventArgs e)
         {
+            SendDataStrs.Clear();
+            //SendCommandListBox.ItemsSource = SendDataStrs;
             try
             {
                 VR33BTerminal.SerialPort.Open();
@@ -104,8 +128,15 @@ namespace VR33B.LineGraphic
                     Data = new byte[] { 0, 1 }
                 };
                 //VR33BTerminal.Send(sendData);
-                var response = await VR33BTerminal.SendCommandAsync(new ReadAddressCommand());
-                System.Diagnostics.Debug.WriteLine(response.Response);
+                var response1 = await VR33BTerminal.SendCommandAsync(new ReadAddressCommand());
+                if (response1.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine("1:" + response1.Response);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("1:Failed");
+                }
             }
         }
 
@@ -113,10 +144,37 @@ namespace VR33B.LineGraphic
         {
             if (VR33BTerminal.SerialPort.IsOpen)
             {
-                var response = await VR33BTerminal.SendCommandAsync(new ReadAccelerometerRange(VR33BTerminal));
-                System.Diagnostics.Debug.WriteLine(response.Response);
+                var response1 = await VR33BTerminal.SendCommandAsync(new ReadAccelerometerRange(VR33BTerminal));
+                //var response2 = await VR33BTerminal.SendCommandAsync(new ReadAddressCommand());
+                //var response3 = await VR33BTerminal.SendCommandAsync(new ReadAccelerometerRange(VR33BTerminal));
+                if (response1.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine("1:"+response1.Response);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("1:Failed");
+                }
             }
                 
+        }
+
+        private async void SetAccRangeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!VR33BTerminal.SerialPort.IsOpen)
+            {
+                return;
+            }
+            var selectedItem = (AccelerometerRange)SetAccRangeComboBox.SelectedItem;
+            var response = await VR33BTerminal.SendCommandAsync(new SetAccelerometerRangeCommand(VR33BTerminal, selectedItem));
+            if (response.Success)
+            {
+                System.Diagnostics.Debug.WriteLine(response.Response);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Failed");
+            }
         }
     }
 }
