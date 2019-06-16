@@ -45,6 +45,7 @@ namespace VR33B
 
         public event EventHandler OnVR33BSampleStarted;
         public event EventHandler<VR33BSampleValue> OnVR33BSampleValueReceived;
+        public event EventHandler OnVR33BSampleEnded;
 
         /// <summary>
         /// 是否采样中
@@ -280,6 +281,7 @@ namespace VR33B
             if(response.Success)
             {
                 Sampling = false;
+                OnVR33BSampleEnded?.Invoke(this, null);
                 return true;
             }
             else
