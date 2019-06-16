@@ -24,16 +24,21 @@ namespace VR33B.LineGraphic
     {
         VR33BTerminal VR33BTerminal;
         ObservableCollection<string> SendDataStrs;
-        ObservableCollection<AccelerometerRange> SetAccRangeComboBoxSource;
+        ObservableCollection<string> ReceiveDataStrs;
+        ObservableCollection<VR33BAccelerometerRange> SetAccRangeComboBoxSource;
+        
         public MainWindow()
         {
             InitializeComponent();
             SendDataStrs = new ObservableCollection<string>();
             SendCommandListBox.ItemsSource = SendDataStrs;
-            SendDataStrs.Add("FUCK");
+            SendDataStrs.Add("sdfas");
             SendDataStrs.Add("sdf");
+            ReceiveDataStrs = new ObservableCollection<string>();
+            ReceiveCommandListBox.ItemsSource = ReceiveDataStrs;
+            ReceiveDataStrs.Add("HAHAHA");
 
-            SetAccRangeComboBoxSource = new ObservableCollection<AccelerometerRange>() { AccelerometerRange._2g, AccelerometerRange._4g, AccelerometerRange._8g, AccelerometerRange._16g };
+            SetAccRangeComboBoxSource = new ObservableCollection<VR33BAccelerometerRange>() { VR33BAccelerometerRange._2g, VR33BAccelerometerRange._4g, VR33BAccelerometerRange._8g, VR33BAccelerometerRange._16g };
             SetAccRangeComboBox.ItemsSource = SetAccRangeComboBoxSource;
 
 
@@ -42,6 +47,7 @@ namespace VR33B.LineGraphic
             VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
 
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
+            VR33BTerminal.OnVR33BSampleValueReceived += VR33BTerminal_OnVR33BSampleValueReceived;
 
             double[] x = new double[200];
             for (int i = 0; i < x.Length; i++)
@@ -84,6 +90,11 @@ namespace VR33B.LineGraphic
             }
         }
 
+        private void VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
+        {
+            System.Diagnostics.Debug.WriteLine(e);
+        }
+
         private void VR33BTerminal_OnSerialPortSent(object sender, VR33BSendData e)
         {
             this.Dispatcher.Invoke(new Action(() => {
@@ -95,13 +106,18 @@ namespace VR33B.LineGraphic
 
         private void VR33BTerminal_OnReceived(object sender, VR33BReceiveData e)
         {
-            //System.Diagnostics.Debug.WriteLine(e.ToString());
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                ReceiveDataStrs.Add(e.ToString());
+            }));
+            
         }
 
         private void OpenSerialPortBtn_Click(object sender, RoutedEventArgs e)
         {
             SendDataStrs.Clear();
             //SendCommandListBox.ItemsSource = SendDataStrs;
+            ReceiveDataStrs.Clear();
             try
             {
                 VR33BTerminal.SerialPort.Open();
@@ -165,7 +181,7 @@ namespace VR33B.LineGraphic
             {
                 return;
             }
-            var selectedItem = (AccelerometerRange)SetAccRangeComboBox.SelectedItem;
+            var selectedItem = (VR33BAccelerometerRange)SetAccRangeComboBox.SelectedItem;
             var response = await VR33BTerminal.SendCommandAsync(new SetAccelerometerRangeCommand(VR33BTerminal, selectedItem));
             if (response.Success)
             {
@@ -174,6 +190,31 @@ namespace VR33B.LineGraphic
             else
             {
                 System.Diagnostics.Debug.WriteLine("Failed");
+            }
+        }
+
+        private async void ReadAccmeterButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(!VR33BTerminal.SerialPort.IsOpen)
+            {
+                return;
+            }
+            await VR33BTerminal.SendCommandAsync(new StartSampleCommand(VR33BTerminal));
+        }
+
+        private async void SamplingCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (VR33BTerminal.SerialPort.IsOpen)
+            {
+                await VR33BTerminal.StartSampleAsync();
+            }
+        }
+
+        private async void SamplingCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if(VR33BTerminal.SerialPort.IsOpen)
+            {
+                await VR33BTerminal.StopSampleAsync();
             }
         }
     }
