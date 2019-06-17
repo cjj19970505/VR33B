@@ -6,24 +6,41 @@
         xmlns:d3="clr-namespace:InteractiveDataDisplay.WPF;assembly=InteractiveDataDisplay.WPF"
         xmlns:local="clr-namespace:VR33B.LineGraphic"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="1213.5">
+        Title="MainWindow" Height="769" Width="1213.5"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="84*"/>
             <ColumnDefinition Width="115*"/>
         </Grid.ColumnDefinitions>
 
-        <Button x:Name="OpenSerialPortBtn" Content="Open" HorizontalAlignment="Left" Margin="21,96,0,0" VerticalAlignment="Top" Width="75" Click="OpenSerialPortBtn_Click"/>
+        <Button x:Name="OpenSerialPortBtn" Content="Open" HorizontalAlignment="Left" Margin="21,96,0,0" VerticalAlignment="Top" Width="75" Click="OpenSerialPortBtn_Click" materialDesign:ShadowAssist.ShadowDepth="Depth3"/>
         <Button x:Name="SendTestMsgBtn" Content="ReadAddr" HorizontalAlignment="Left" Margin="21,143,0,0" VerticalAlignment="Top" Width="75" Click="SendTestMsgBtn_Click"/>
         <Button x:Name="ReadAccRangeBtn" Content="ReadRange" HorizontalAlignment="Left" Margin="21,207,0,0" VerticalAlignment="Top" Width="75" Click="ReadAccRangeBtn_Click"/>
-        <ListBox x:Name="SendCommandListBox" HorizontalAlignment="Left" Height="156" Margin="155,36,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2"/>
+        <ListBox x:Name="SendCommandListBox" HorizontalAlignment="Left" Height="156" Margin="155,36,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2" materialDesign:ShadowAssist.ShadowDepth="Depth2"/>
         <ComboBox x:Name="SetAccRangeComboBox" HorizontalAlignment="Left" Margin="21,307,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="SetAccRangeComboBox_SelectionChanged"/>
-        <ListBox x:Name="ReceiveCommandListBox" HorizontalAlignment="Left" Height="162" Margin="155,207,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2"/>
+        <ListBox x:Name="ReceiveCommandListBox" HorizontalAlignment="Left" Height="162" Margin="155,207,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2" VirtualizingStackPanel.VirtualizationMode="Recycling"/>
         <Button x:Name="ReadAccmeterButton" Content="ReadAcc" HorizontalAlignment="Left" Margin="21,231,0,0" VerticalAlignment="Top" Width="75" Click="ReadAccmeterButton_Click"/>
         <CheckBox x:Name="SamplingCheckBox" Content="Sampling" HorizontalAlignment="Left" Margin="21,267,0,0" VerticalAlignment="Top" Checked="SamplingCheckBox_Checked" Unchecked="SamplingCheckBox_Unchecked"/>
         <Grid x:Name="VR33BGraphGrid" Grid.Column="1" HorizontalAlignment="Left" Height="344" Margin="10,36,0,0" VerticalAlignment="Top" Width="647">
-            <local:VR33BGraph/>
+            <local:VR33BGraph x:Name="VR33BGraph"/>
         </Grid>
+        <ListView x:Name="SampleDataListView" HorizontalAlignment="Left" Height="244" Margin="21,463,0,0" VerticalAlignment="Top" Width="1136" Grid.ColumnSpan="2" ItemsSource ="{Binding Path=TestTable}" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling" ScrollViewer.IsDeferredScrollingEnabled="true">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="时间" Width="120" DisplayMemberBinding="{Binding Path=SampleDateTime}"/>
+                    <GridViewColumn Header="加速度" Width="120" DisplayMemberBinding="{Binding Path=AccelerometerValue}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ComboBox x:Name="SetSampleFrequencyComboBox" HorizontalAlignment="Left" Margin="21,352,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="SetSampleFrequencyComboBox_SelectionChanged"/>
 
     </Grid>
 </Window>

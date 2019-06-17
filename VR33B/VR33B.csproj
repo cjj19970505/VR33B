@@ -56,7 +56,6 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SampleDataStorage.cs" />
     <Compile Include="VR33B.cs" />
     <Compile Include="VR33BSetting.cs" />
     <Compile Include="VR33BValue.cs" />

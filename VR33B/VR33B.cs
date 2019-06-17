@@ -711,4 +711,60 @@ namespace VR33B
             _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
         }
     }
+
+    public class SetSampleFrequencyCommand:ICommand
+    {
+        public VR33BSampleFrequence SampleFrequency { get; set; }
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 10;
+            }
+        }
+
+        private readonly (VR33BSendData, TimeSpan)[] _SendDataSequence;
+
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
+        {
+            get
+            {
+                return _SendDataSequence;
+            }
+        }
+
+        public bool IsResponse(VR33BReceiveData receiveData)
+        {
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 2)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public SetSampleFrequencyCommand(VR33BTerminal vr33bTerminal, VR33BSampleFrequence sampleFrequency)
+        {
+            SampleFrequency = sampleFrequency;
+            var setData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.Address,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0017,
+                Data = new byte[] { BitConverter.GetBytes((UInt16)SampleFrequency)[1], BitConverter.GetBytes((UInt16)SampleFrequency)[0] }
+            };
+            var readData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.Address,
+                ReadOrWrite = VR33BMessageType.Read,
+                RegisterAddress = 0x0017,
+                Data = new byte[] { 0, 0 }
+            };
+
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[]
+            {
+                (setData, new TimeSpan(0, 0, 0, 0, 100)),
+                (readData, new TimeSpan(0, 0, 0, 0, 50))
+            };
+        }
+    }
 }
