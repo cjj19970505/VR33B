@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VR33B
@@ -19,6 +20,7 @@ namespace VR33B
         private object _SampleValuesLock;
         private List<VR33BSampleValue> _SampleValues;
         public event EventHandler<VR33BSampleValue> Updated;
+
         public VR33BTerminal VR33BTerminal
         {
             get
@@ -78,6 +80,7 @@ namespace VR33B
                     var query = (from sampleValue in _SampleValues
                                 where sampleValue.SampleDateTime >= startDateTime && sampleValue.SampleDateTime <= endDateTime
                                 select sampleValue).ToList();
+                    //Thread.Sleep(query.Count * 10);
                     return query;
                 }
             });
