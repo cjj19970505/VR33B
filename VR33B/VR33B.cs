@@ -7,6 +7,7 @@ using System.IO.Ports;
 
 namespace VR33B
 {
+    public enum VR33BSettingResult { Succss, Falied}
     public class VR33BTerminal
     {
         public byte Address = 0x02;
@@ -47,6 +48,7 @@ namespace VR33B
         public event EventHandler<VR33BSampleValue> OnVR33BSampleValueReceived;
         public event EventHandler OnVR33BSampleEnded;
 
+        public bool UseFakeSampleValueGenerator { get; }
         /// <summary>
         /// 是否采样中
         /// </summary>
@@ -57,7 +59,7 @@ namespace VR33B
         /// </summary>
         public VR33BSetting LatestSetting { get; internal set; }
 
-        public VR33BTerminal()
+        public VR33BTerminal(bool useFakeSampleValueGenerator = false)
         {
             _ReceivedBytesBuffer = new List<byte>();
             _ReceivedBytesBufferLock = new object();
@@ -77,7 +79,11 @@ namespace VR33B
             SerialPort.RtsEnable = true;
 
             SerialPort.DataReceived += SerialPort_DataReceived;
-            //SerialPort.Open();
+            UseFakeSampleValueGenerator = useFakeSampleValueGenerator;
+            if(UseFakeSampleValueGenerator)
+            {
+                _FakeDataGenerateTask();
+            }
         }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
@@ -256,7 +262,18 @@ namespace VR33B
         /// <returns>True if isSampling or successfully start sample, false if otherwise</returns>
         public async Task<bool> StartSampleAsync()
         {
-            if(Sampling)
+            if(UseFakeSampleValueGenerator)
+            {
+                if (Sampling)
+                {
+                    return true;
+                }
+                Sampling = true;
+                OnVR33BSampleStarted?.Invoke(this, null);
+                return true;
+            }
+
+            if (Sampling)
             {
                 return true;
             }
@@ -277,6 +294,13 @@ namespace VR33B
 
         public async Task<bool> StopSampleAsync()
         {
+            if(UseFakeSampleValueGenerator)
+            {
+                Sampling = false;
+                OnVR33BSampleEnded?.Invoke(this, null);
+                return true;
+            }
+
             var response = await SendCommandAsync(new StopSampleCommand());
             if(response.Success)
             {
@@ -302,6 +326,64 @@ namespace VR33B
                 }
             }
         }
+
+        public async Task<VR33BSettingResult> SetSampleFrequencyAsync(VR33BSampleFrequence sampleFrequency)
+        {
+            var response = await SendCommandAsync(new SetSampleFrequencyCommand(this, sampleFrequency));
+            if(response.Success)
+            {
+                LatestSetting.SampleFrequence = sampleFrequency;
+                return VR33BSettingResult.Succss;
+            }
+            else
+            {
+                return VR33BSettingResult.Falied;
+            }
+        }
+
+        private Task _FakeDataGenerateTask()
+        {
+            return Task.Run(() =>
+            {
+                double frequency = 200;
+                DateTime _LatestSampleDateTime = DateTime.Now;
+                long sampleIndex = 0;
+
+                OnVR33BSampleStarted += (object sender, EventArgs e) => { sampleIndex = 0; };
+                while (true)
+                {
+                    if (Sampling)
+                    {
+                        DateTime now = DateTime.Now;
+                        if((now - _LatestSampleDateTime).TotalSeconds > 1.0/frequency)
+                        {
+                            _LatestSampleDateTime = now;
+                            var sampleValue = _FakeDataGenerateFunc(now, sampleIndex);
+                            sampleIndex++;
+                            OnVR33BSampleValueReceived?.Invoke(this, sampleValue);
+                        }
+                    }
+                    
+                }
+                
+            });
+        }
+
+        private VR33BSampleValue _FakeDataGenerateFunc(DateTime dateTime, long sampleIndex)
+        {
+            DateTime initDateTime = new DateTime(1970, 1, 1, 0, 0, 0);
+            return new VR33BSampleValue
+            {
+                SampleIndex = sampleIndex,
+                SampleDateTime = dateTime,
+                RawAccelerometerValue = ((UInt16)(0.5*Math.Sin(0.05*(dateTime - initDateTime).TotalMilliseconds) * Int16.MaxValue), (UInt16)(0.2*Math.Cos(0.001*(dateTime - initDateTime).TotalMilliseconds) * Int16.MaxValue), (UInt16)(0.1*Math.Sin(0.04*(dateTime - initDateTime).TotalMilliseconds) * Int16.MaxValue)),
+                RawTemperature = 0,
+                RawHumidity = 3
+            };
+        }
+
+
+        
     }
 
     public enum VR33BCommandState { Idle, Sending, Success, Failed }

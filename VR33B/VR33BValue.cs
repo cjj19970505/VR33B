@@ -14,11 +14,6 @@ namespace VR33B
         /// 在一次采样中，采样点按顺序产生，并且按顺序赋予一个采样编号
         /// </summary>
         public long SampleIndex { get; set; }
-        public VR33BSampleFrequence SampleFrequence { get; set; }
-        public VR33BAccelerometerRange AccelerometerRange { get; set; }
-        public (UInt16 X, UInt16 Y, UInt16 Z) AccelerometerZero { get; set; }
-        public (UInt16 X, UInt16 Y, UInt16 Z) AcelerometerSensibility { get; set; }
-
         public DateTime SampleDateTime { get; set; }
         public (UInt16 X, UInt16 Y, UInt16 Z) RawAccelerometerValue { get; set; }
         public UInt16 RawTemperature { get;  set; }
@@ -72,11 +67,6 @@ namespace VR33B
             UInt16 rawH = BitConverter.ToUInt16(hBytes, 0);
             VR33BSampleValue sampleValue = new VR33BSampleValue()
             {
-                SampleFrequence = vr33bSetting.SampleFrequence,
-                AccelerometerRange = vr33bSetting.AccelerometerRange,
-                AccelerometerZero = vr33bSetting.AccelerometerZero,
-                AcelerometerSensibility = vr33bSetting.AccelerometerZero,
-
                 SampleDateTime = DateTime.Now,
 
                 RawAccelerometerValue = (rawX, rawY, rawZ),

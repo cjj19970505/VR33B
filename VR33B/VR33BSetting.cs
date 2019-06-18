@@ -14,7 +14,7 @@ namespace VR33B
     public enum VR33SerialPortStopBits { One = 0x01, Two = 0x02}
 
     public enum VR33BSampleFrequence { _1Hz = 0x01, _5Hz = 0x05, _20Hz = 0x20, _50Hz = 0x50, _100Hz = 0x100, _200Hz = 0x200}
-    public struct VR33BSetting
+    public class VR33BSetting
     {
         public byte DeviceAddress { get; internal set; }
         public VR33BSerialPortBaudRate SerialPortBaudRate { get; set; }

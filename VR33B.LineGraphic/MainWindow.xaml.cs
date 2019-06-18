@@ -55,13 +55,14 @@ namespace VR33B.LineGraphic
             SampleDataListView.ItemsSource = TestTable;
             //TestTable.CollectionChanged += TestTable_CollectionChanged;
 
-            VR33BTerminal = new VR33BTerminal();
+            VR33BTerminal = new VR33BTerminal(true);
             VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
 
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
             VR33BTerminal.OnVR33BSampleValueReceived += VR33BTerminal_OnVR33BSampleValueReceived;
 
-            VR33BGraph.VR33BTerminal = VR33BTerminal;
+            var storage = new VR33BSampleDataStorage(VR33BTerminal);
+            VR33BGraph.VR33BSampleDataStorage = storage;
         }
 
         private void VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
@@ -183,18 +184,14 @@ namespace VR33B.LineGraphic
 
         private async void SamplingCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            if (VR33BTerminal.SerialPort.IsOpen)
-            {
-                await VR33BTerminal.StartSampleAsync();
-            }
+            //await VR33BTerminal.StartFakeSampleAsync();
+            await VR33BTerminal.StartSampleAsync();
         }
 
         private async void SamplingCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            if(VR33BTerminal.SerialPort.IsOpen)
-            {
-                await VR33BTerminal.StopSampleAsync();
-            }
+            //await VR33BTerminal.StopFakeSampleAsync();
+            await VR33BTerminal.StopSampleAsync();
         }
 
         private async void SetSampleFrequencyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
