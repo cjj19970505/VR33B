@@ -61,6 +61,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="GraphicGridPage.xaml.cs">
+      <DependentUpon>GraphicGridPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SensorConfigurePage.xaml.cs">
+      <DependentUpon>SensorConfigurePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SerialPortControlPage.xaml.cs">
+      <DependentUpon>SerialPortControlPage.xaml</DependentUpon>
+    </Compile>
+    <Page Include="GraphicGridPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -73,6 +86,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="SensorConfigurePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SerialPortControlPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
