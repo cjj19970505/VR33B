@@ -48,26 +48,24 @@ namespace VR33B.LineGraphic
                 return (_AbscissaToDateTime(plotRect.XMin), _AbscissaToDateTime(plotRect.XMax));
             }
         }
-
-        public VR33BSampleDataStorage _VR33BSampleDataStorage;
-        public VR33BSampleDataStorage VR33BSampleDataStorage
+        private VR33BTerminal _VR33BTerminal;
+        public VR33BTerminal VR33BTerminal
         {
             get
             {
-                return _VR33BSampleDataStorage;
+                return _VR33BTerminal;
             }
-
             set
             {
-                if (_VR33BSampleDataStorage != null)
+                if(_VR33BTerminal!=null)
                 {
-
+                    _VR33BTerminal.VR33BSampleDataStorage.Updated -= _VR33BSampleDataStorage_Updated;
                 }
-                _VR33BSampleDataStorage = value;
-                _VR33BSampleDataStorage.Updated += _VR33BSampleDataStorage_Updated;
-
+                _VR33BTerminal = value;
+                _VR33BTerminal.VR33BSampleDataStorage.Updated += _VR33BSampleDataStorage_Updated;
             }
         }
+
 
         public TimeSpan _UpdateInterval
         {
@@ -99,7 +97,7 @@ namespace VR33B.LineGraphic
             _LoadedRangeDateTime = (newLoadStartDateTime, newLoadEndDateTime);
             return Task.Run(async () =>
             {
-                var plotData = await VR33BSampleDataStorage.GetFromDateTimeRange(newLoadStartDateTime, newLoadEndDateTime);
+                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRange(newLoadStartDateTime, newLoadEndDateTime);
                 _LoadedSampleValues = plotData.ToArray();
                 var axis_x = (from plotSampleValue in plotData
                               select (double)plotSampleValue.AccelerometerValue.X).ToArray();
@@ -235,7 +233,7 @@ namespace VR33B.LineGraphic
                 GraphEndDateTimeLabel.Content = GraphDateTimeRange.GraphEndDateTime;
             });
 
-            if(!TrackingModeOn)
+            if(!TrackingModeOn || !VR33BTerminal.Sampling)
             {
                 var reloadBorderLeftFromloadBorderLeftTimeSpan = new TimeSpan(0, 0, 0, 0, (int)((_LoadedRangeDateTime.End - _LoadedRangeDateTime.Start).TotalMilliseconds * _ReloadRangeAndLoadedRangeRatio));
                 var reloadBorderLeftDateTime = _LoadedRangeDateTime.Start.Add(reloadBorderLeftFromloadBorderLeftTimeSpan);

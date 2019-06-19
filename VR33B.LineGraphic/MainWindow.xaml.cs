@@ -61,8 +61,7 @@ namespace VR33B.LineGraphic
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
             VR33BTerminal.OnVR33BSampleValueReceived += VR33BTerminal_OnVR33BSampleValueReceived;
 
-            var storage = new VR33BSampleDataStorage(VR33BTerminal);
-            VR33BGraph.VR33BSampleDataStorage = storage;
+            VR33BGraph.VR33BTerminal = VR33BTerminal;
         }
 
         private void VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)

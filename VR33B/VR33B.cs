@@ -48,6 +48,8 @@ namespace VR33B
         public event EventHandler<VR33BSampleValue> OnVR33BSampleValueReceived;
         public event EventHandler OnVR33BSampleEnded;
 
+        public VR33BSampleDataStorage VR33BSampleDataStorage { get; }
+
         public bool UseFakeSampleValueGenerator { get; }
         /// <summary>
         /// 是否采样中
@@ -84,6 +86,8 @@ namespace VR33B
             {
                 _FakeDataGenerateTask();
             }
+
+            VR33BSampleDataStorage = new VR33BSampleDataStorage(this);
         }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
