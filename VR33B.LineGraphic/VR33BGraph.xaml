@@ -34,11 +34,11 @@
             <Grid>
                 <Grid Name="Lines">
                     <d3:LineGraph x:Name="XLineGraph" Description="Axis-X" Stroke="Red"/>
-                    <d3:DiamondMarkerGraph x:Name="XMarkerGraph" Description="Axis-X" Stroke="Red"/>
+                    <d3:CircleMarkerGraph x:Name="XMarkerGraph" Description="Axis-X" Stroke="Red"/>
                     <d3:LineGraph x:Name="YLineGraph" Description="Axis-Y" Stroke="Green"/>
                     <d3:CircleMarkerGraph x:Name="YMarkerGraph" Description="Axis-Y" Stroke="Green"/>
                     <d3:LineGraph x:Name="ZLineGraph" Description="Axis-Z" Stroke="Blue"/>
-                    <d3:TriangleMarkerGraph x:Name="ZMarkerGraph" Description="Axis-Z" Stroke="Blue"/>
+                    <d3:CircleMarkerGraph x:Name="ZMarkerGraph" Description="Axis-Z" Stroke="Blue"/>
                 </Grid>
                 <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="33,60,0,0" Click="Button_Click"/>
             </Grid>

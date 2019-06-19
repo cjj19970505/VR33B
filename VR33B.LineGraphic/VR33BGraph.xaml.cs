@@ -159,6 +159,7 @@ namespace VR33B.LineGraphic
                         {
                             plotPosNorm = _DateTimeUnlerp(GraphDateTimeRange.GraphStartDateTime, GraphDateTimeRange.GraphEndDateTime, _LatestSampleValue.SampleDateTime);
                         }
+                        plotPosNorm = 0.5;
                         _LastPlotDateTime = DateTime.Now;
                         double displayRangeInMs = (GraphDateTimeRange.GraphEndDateTime - GraphDateTimeRange.GraphStartDateTime).TotalMilliseconds;
                         double latestValueInMs = displayRangeInMs * plotPosNorm;

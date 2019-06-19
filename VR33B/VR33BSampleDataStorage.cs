@@ -54,13 +54,17 @@ namespace VR33B
             
         }
 
-        private void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
+        private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
-            lock(_SampleValuesLock)
+            await Task.Run(() =>
             {
-                _SampleValues.Add(e);
-            }
-            Updated?.Invoke(this, e);
+                lock (_SampleValuesLock)
+                {
+                    _SampleValues.Add(e);
+                }
+                Updated?.Invoke(this, e);
+            });
+            
         }
 
         private void _VR33BTerminal_OnVR33BSampleStarted(object sender, EventArgs e)
@@ -80,7 +84,7 @@ namespace VR33B
                     var query = (from sampleValue in _SampleValues
                                 where sampleValue.SampleDateTime >= startDateTime && sampleValue.SampleDateTime <= endDateTime
                                 select sampleValue).ToList();
-                    //Thread.Sleep(query.Count * 10);
+                    //Thread.Sleep(query.Count);
                     return query;
                 }
             });
