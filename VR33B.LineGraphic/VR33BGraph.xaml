@@ -12,6 +12,12 @@
             <d3:Chart.Title>
                 <TextBlock HorizontalAlignment="Center">ACCELERATOR</TextBlock>
             </d3:Chart.Title>
+            <d3:Chart.LeftTitle>
+                <Label x:Name="GraphBeginDateTimeLabel" Content="fuck"/>
+            </d3:Chart.LeftTitle>
+            <d3:Chart.RightTitle>
+                <Label x:Name="GraphEndDateTimeLabel" Content="fuck"/>
+            </d3:Chart.RightTitle>
             <d3:Chart.LegendContent>
 
                 <d3:LegendItemsPanel>
@@ -26,9 +32,17 @@
                 </d3:LegendItemsPanel>
             </d3:Chart.LegendContent>
             <Grid>
-                <Grid Name="Lines"/>
-                <Grid Name="CircleMarkers"/>
+                <Grid Name="Lines">
+                    <d3:LineGraph x:Name="XLineGraph" Description="Axis-X" Stroke="Red"/>
+                    <d3:CircleMarkerGraph x:Name="XMarkerGraph" Description="Axis-X" Stroke="Red"/>
+                    <d3:LineGraph x:Name="YLineGraph" Description="Axis-Y" Stroke="Green"/>
+                    <d3:CircleMarkerGraph x:Name="YMarkerGraph" Description="Axis-Y" Stroke="Green"/>
+                    <d3:LineGraph x:Name="ZLineGraph" Description="Axis-Z" Stroke="Blue"/>
+                    <d3:CircleMarkerGraph x:Name="ZMarkerGraph" Description="Axis-Z" Stroke="Blue"/>
+                </Grid>
+                <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Top" Width="75" Margin="33,60,0,0" Click="Button_Click"/>
             </Grid>
         </d3:Chart>
+        <CheckBox Content="Tracking" HorizontalAlignment="Left" Margin="63,26,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=TrackingModeOn}"/>
     </Grid>
 </UserControl>

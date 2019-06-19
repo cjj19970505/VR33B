@@ -7,22 +7,18 @@ using System.Threading.Tasks;
 
 namespace VR33B
 {
+    [Serializable()]
     public struct VR33BSampleValue
     {
-
-        public VR33BSampleFrequence SampleFrequence { get; internal set; }
-        public VR33BAccelerometerRange AccelerometerRange { get; internal set; }
-        public (UInt16 X, UInt16 Y, UInt16 Z) AccelerometerZero { get; internal set; }
-        public (UInt16 X, UInt16 Y, UInt16 Z) AcelerometerSensibility { get; internal set; }
-
-        public DateTime SampleDateTime { get; set; }
-        public (UInt16 X, UInt16 Y, UInt16 Z) RawAccelerometerValue { get; internal set; }
-        public UInt16 RawTemperature { get; internal set; }
-        public UInt16 RawHumidity { get; internal set; }
-        
         /// <summary>
-        /// 单位是g
+        /// 在一次采样中，采样点按顺序产生，并且按顺序赋予一个采样编号
         /// </summary>
+        public long SampleIndex { get; set; }
+        public DateTime SampleDateTime { get; set; }
+        public (UInt16 X, UInt16 Y, UInt16 Z) RawAccelerometerValue { get; set; }
+        public UInt16 RawTemperature { get;  set; }
+        public UInt16 RawHumidity { get; set; }
+
         public Vector3 AccelerometerValue
         {
             get
@@ -71,11 +67,6 @@ namespace VR33B
             UInt16 rawH = BitConverter.ToUInt16(hBytes, 0);
             VR33BSampleValue sampleValue = new VR33BSampleValue()
             {
-                SampleFrequence = vr33bSetting.SampleFrequence,
-                AccelerometerRange = vr33bSetting.AccelerometerRange,
-                AccelerometerZero = vr33bSetting.AccelerometerZero,
-                AcelerometerSensibility = vr33bSetting.AccelerometerZero,
-
                 SampleDateTime = DateTime.Now,
 
                 RawAccelerometerValue = (rawX, rawY, rawZ),

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,7 +27,10 @@ namespace VR33B.LineGraphic
         ObservableCollection<string> SendDataStrs;
         ObservableCollection<string> ReceiveDataStrs;
         ObservableCollection<VR33BAccelerometerRange> SetAccRangeComboBoxSource;
+        ObservableCollection<VR33BSampleFrequence> SetSampleFrequencyComboBoxSource;
+        ObservableCollection<VR33BSampleValue> TestTable;
         
+
         public MainWindow()
         {
             InitializeComponent();
@@ -37,28 +41,42 @@ namespace VR33B.LineGraphic
             ReceiveDataStrs = new ObservableCollection<string>();
             ReceiveCommandListBox.ItemsSource = ReceiveDataStrs;
             ReceiveDataStrs.Add("HAHAHA");
-
+            
             SetAccRangeComboBoxSource = new ObservableCollection<VR33BAccelerometerRange>() { VR33BAccelerometerRange._2g, VR33BAccelerometerRange._4g, VR33BAccelerometerRange._8g, VR33BAccelerometerRange._16g };
             SetAccRangeComboBox.ItemsSource = SetAccRangeComboBoxSource;
+            SetSampleFrequencyComboBoxSource = new ObservableCollection<VR33BSampleFrequence>() { VR33BSampleFrequence._1Hz, VR33BSampleFrequence._5Hz, VR33BSampleFrequence._20Hz, VR33BSampleFrequence._50Hz, VR33BSampleFrequence._100Hz, VR33BSampleFrequence._200Hz };
+            SetSampleFrequencyComboBox.ItemsSource = SetSampleFrequencyComboBoxSource;
 
 
+            TestTable = new ObservableCollection<VR33BSampleValue>();
+            TestTable.Add(new VR33BSampleValue());
+            TestTable.Add(new VR33BSampleValue());
+            //SampleDataListView.DataContext = TestTable;
+            SampleDataListView.ItemsSource = TestTable;
+            //TestTable.CollectionChanged += TestTable_CollectionChanged;
 
-            VR33BTerminal = new VR33BTerminal();
+            VR33BTerminal = new VR33BTerminal(true);
             VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
 
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
             VR33BTerminal.OnVR33BSampleValueReceived += VR33BTerminal_OnVR33BSampleValueReceived;
+
+            VR33BGraph.VR33BTerminal = VR33BTerminal;
         }
 
         private void VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
-            System.Diagnostics.Debug.WriteLine(e);
+            Dispatcher.Invoke(() =>
+            {
+                TestTable.Insert(0, e);
+            });
+            
         }
 
         private void VR33BTerminal_OnSerialPortSent(object sender, VR33BSendData e)
         {
             this.Dispatcher.Invoke(new Action(() => {
-                SendDataStrs.Add(e.ToString());
+                SendDataStrs.Insert(0, e.ToString());
                 
             }));
             
@@ -68,7 +86,7 @@ namespace VR33B.LineGraphic
         {
             this.Dispatcher.Invoke(new Action(() =>
             {
-                ReceiveDataStrs.Add(e.ToString());
+                ReceiveDataStrs.Insert(0, e.ToString());
             }));
             
         }
@@ -78,6 +96,7 @@ namespace VR33B.LineGraphic
             SendDataStrs.Clear();
             //SendCommandListBox.ItemsSource = SendDataStrs;
             ReceiveDataStrs.Clear();
+            TestTable.Clear();
             try
             {
                 VR33BTerminal.SerialPort.Open();
@@ -164,17 +183,31 @@ namespace VR33B.LineGraphic
 
         private async void SamplingCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            if (VR33BTerminal.SerialPort.IsOpen)
-            {
-                await VR33BTerminal.StartSampleAsync();
-            }
+            //await VR33BTerminal.StartFakeSampleAsync();
+            await VR33BTerminal.StartSampleAsync();
         }
 
         private async void SamplingCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            if(VR33BTerminal.SerialPort.IsOpen)
+            //await VR33BTerminal.StopFakeSampleAsync();
+            await VR33BTerminal.StopSampleAsync();
+        }
+
+        private async void SetSampleFrequencyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!VR33BTerminal.SerialPort.IsOpen)
             {
-                await VR33BTerminal.StopSampleAsync();
+                return;
+            }
+            var selectedItem = (VR33BSampleFrequence)SetSampleFrequencyComboBox.SelectedItem;
+            var response = await VR33BTerminal.SendCommandAsync(new SetSampleFrequencyCommand(VR33BTerminal, selectedItem));
+            if (response.Success)
+            {
+                System.Diagnostics.Debug.WriteLine(response.Response);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Failed");
             }
         }
     }
