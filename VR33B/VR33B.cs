@@ -8,6 +8,7 @@ using System.IO.Ports;
 namespace VR33B
 {
     public enum VR33BSettingResult { Succss, Falied}
+    public enum VR33BReadResult { Success, Failed}
     public class VR33BTerminal
     {
         public byte Address = 0x02;
@@ -55,6 +56,7 @@ namespace VR33B
         /// 是否采样中
         /// </summary>
         public bool Sampling { get; private set; }
+        private long _CurrentSampleIndex = 0;
 
         /// <summary>
         /// PC中保存的最新的设置（可能和实际有出入，但是一旦获取到新的设置后会自动填充进这个设置里，（除非前端作死自己去使用SendCommand函数啥的）
@@ -63,6 +65,8 @@ namespace VR33B
 
         public VR33BTerminal(bool useFakeSampleValueGenerator = false)
         {
+            LatestSetting = new VR33BSetting();
+
             _ReceivedBytesBuffer = new List<byte>();
             _ReceivedBytesBufferLock = new object();
             _LatestSerialPortReceiveTime = DateTime.Now;
@@ -79,6 +83,8 @@ namespace VR33B
             SerialPort.DataBits = 8;
             SerialPort.Handshake = Handshake.None;
             SerialPort.RtsEnable = true;
+
+            _CurrentSampleIndex = 0;
 
             SerialPort.DataReceived += SerialPort_DataReceived;
             UseFakeSampleValueGenerator = useFakeSampleValueGenerator;
@@ -266,7 +272,8 @@ namespace VR33B
         /// <returns>True if isSampling or successfully start sample, false if otherwise</returns>
         public async Task<bool> StartSampleAsync()
         {
-            if(UseFakeSampleValueGenerator)
+            _CurrentSampleIndex = 0;
+            if (UseFakeSampleValueGenerator)
             {
                 if (Sampling)
                 {
@@ -286,7 +293,8 @@ namespace VR33B
             {
                 Sampling = true;
                 OnVR33BSampleStarted?.Invoke(this, null);
-                OnVR33BSampleValueReceived?.Invoke(this, VR33BSampleValue.FromVR33BReceiveData(response.Response, LatestSetting));
+                OnVR33BSampleValueReceived?.Invoke(this, VR33BSampleValue.FromVR33BReceiveData(response.Response, LatestSetting, 0));
+                _CurrentSampleIndex = 1;
                 this.OnReceived += VR33BTerminal_OnReceived;
                 return true;
             }
@@ -325,18 +333,46 @@ namespace VR33B
             {
                 if(e.ReadOrWrite == VR33BMessageType.Read && e.Data.Length == 10)
                 {
-                    VR33BSampleValue sampleValue = VR33BSampleValue.FromVR33BReceiveData(e, LatestSetting);
+
+                    VR33BSampleValue sampleValue = VR33BSampleValue.FromVR33BReceiveData(e, LatestSetting, _CurrentSampleIndex);
+                    _CurrentSampleIndex++;
                     OnVR33BSampleValueReceived?.Invoke(this, sampleValue);
                 }
             }
         }
 
+        public async Task<(VR33BReadResult, VR33BSampleFrequence)> ReadSampleFrequencyAsync()
+        {
+            var response = await SendCommandAsync(new ReadSampleFrequencyCommand(this));
+            if (response.Success)
+            {
+                VR33BSampleFrequence sampleFrequency = (VR33BSampleFrequence)BitConverter.ToInt16(new byte[] { response.Response.Data[1], response.Response.Data[0] }, 0);
+                return (VR33BReadResult.Success, sampleFrequency);
+            }
+            else
+            {
+                return (VR33BReadResult.Failed, VR33BSampleFrequence._1Hz);
+            }
+        }
         public async Task<VR33BSettingResult> SetSampleFrequencyAsync(VR33BSampleFrequence sampleFrequency)
         {
             var response = await SendCommandAsync(new SetSampleFrequencyCommand(this, sampleFrequency));
             if(response.Success)
             {
                 LatestSetting.SampleFrequence = sampleFrequency;
+                return VR33BSettingResult.Succss;
+            }
+            else
+            {
+                return VR33BSettingResult.Falied;
+            }
+        }
+        public async Task<VR33BSettingResult> SetAccelerometerRange(VR33BAccelerometerRange accelerometerRange)
+        {
+            var response = await SendCommandAsync(new SetAccelerometerRangeCommand(this, accelerometerRange));
+            if (response.Success)
+            {
+                LatestSetting.AccelerometerRange = accelerometerRange;
                 return VR33BSettingResult.Succss;
             }
             else
@@ -386,7 +422,26 @@ namespace VR33B
             };
         }
 
+        public async Task ConnectAsync()
+        {
+            if(SerialPort.IsOpen)
+            {
+                return;
+            }
+            try
+            {
+                SerialPort.Open();
+                await ReadSampleFrequencyAsync();
 
+            }
+            catch(Exception e)
+            {
+                System.Diagnostics.Debug.WriteLine(e.Message);
+            }
+            
+        }
+
+        
         
     }
 
@@ -654,7 +709,51 @@ namespace VR33B
             _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
         }
     }
-    
+
+    public class ReadSampleFrequencyCommand : ICommand
+    {
+
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 10;
+            }
+        }
+
+        private readonly (VR33BSendData, TimeSpan)[] _SendDataSequence;
+
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
+        {
+            get
+            {
+                return _SendDataSequence;
+            }
+        }
+
+        public bool IsResponse(VR33BReceiveData receiveData)
+        {
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 2)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public ReadSampleFrequencyCommand(VR33BTerminal vr33bTerminal)
+        {
+            var sendData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.Address,
+                ReadOrWrite = VR33BMessageType.Read,
+                RegisterAddress = 0x0017,
+                Data = new byte[] { 0, 0 }
+            };
+
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
+        }
+    }
+
     public class SetAccelerometerRangeCommand : ICommand
     {
         public VR33BAccelerometerRange Range { get; set; }

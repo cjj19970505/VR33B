@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -57,7 +58,7 @@ namespace VR33B.LineGraphic
             }
             set
             {
-                if(_VR33BTerminal!=null)
+                if (_VR33BTerminal != null)
                 {
                     _VR33BTerminal.VR33BSampleDataStorage.Updated -= _VR33BSampleDataStorage_Updated;
                 }
@@ -71,7 +72,7 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                return new TimeSpan(0, 0, 0, 0, 100);
+                return new TimeSpan(0, 0, 0, 0, 300);
             }
         }
 
@@ -82,23 +83,52 @@ namespace VR33B.LineGraphic
         private double _LoadedRangeAndDisplayRangeRatio = 2;
         private double _MinDisplayRangeAndLoadedRangeRatio = 0.1;
         private (DateTime Start, DateTime End) _LoadedRangeDateTime;
-
+        /// <summary>
+        /// 用来标记一次Replot请求
+        /// 由于整个绘制过程包含 取点 绘制 两个耗时较长的阻塞过程，因此若在取点结束之后又有新的replot请求，则就直接放弃这次绘制，转而处理新的Replot请求
+        /// </summary>
         private Guid _LatestRepaintGuid;
+        /// <summary>
+        /// 在显示范围较大时载入太多的Marker时点也点不准，而且使InteractiveDisplay的交互速度下降
+        /// 因此在loaded范围太大时不显示marker
+        /// </summary>
+        private int _MaxMarkerCountInLoadedRangePerAxis = 200;
+        /// <summary>
+        /// 由于在Tracking模式下更新频繁，若一次性plot大量数据会造成很大的性能损失，因此进行降采样
+        /// </summary>
+        private int _MaxLoadedSampleCountInTracking = 80;
 
         public bool TrackingModeOn { get; set; }
-        private Task ReplotAsync(bool plotMarkers)
+
+        //public List<(bool plotMarkers, DataRect plotRect)> _ReplotRequest;
+
+        private Task ReplotAsync(bool plotMarkers, DataRect? plotRect = null)
         {
             var repaintGuid = _LatestRepaintGuid = Guid.NewGuid();
             TimeSpan displayRange = GraphDateTimeRange.GraphEndDateTime - GraphDateTimeRange.GraphStartDateTime;
-            TimeSpan newHalfLoadedRange = new TimeSpan(0, 0, 0, 0, (int)(_LoadedRangeAndDisplayRangeRatio /2* displayRange.TotalMilliseconds));
+            TimeSpan newHalfLoadedRange = new TimeSpan(0, 0, 0, 0, (int)(_LoadedRangeAndDisplayRangeRatio / 2 * displayRange.TotalMilliseconds));
             DateTime displayMidDateTime = GraphDateTimeRange.GraphStartDateTime.Add(new TimeSpan(0, 0, 0, 0, (int)(displayRange.TotalMilliseconds / 2)));
             DateTime newLoadStartDateTime = displayMidDateTime.Subtract(newHalfLoadedRange);
             DateTime newLoadEndDateTime = displayMidDateTime.Add(newHalfLoadedRange);
             _LoadedRangeDateTime = (newLoadStartDateTime, newLoadEndDateTime);
             return Task.Run(async () =>
             {
+                DateTime beforeLookup = DateTime.Now;
+
                 var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRange(newLoadStartDateTime, newLoadEndDateTime);
                 _LoadedSampleValues = plotData.ToArray();
+                var plotCount = plotData.Count;
+                if (TrackingModeOn)
+                {
+                    if (plotCount >= 2 * _MaxLoadedSampleCountInTracking)
+                    {
+                        int step = plotCount / _MaxLoadedSampleCountInTracking;
+                        plotData = (from sampleValue in plotData
+                                    where sampleValue.SampleIndex % step == 0
+                                    select sampleValue).ToList();
+                        plotCount = plotData.Count;
+                    }
+                }
                 var axis_x = (from plotSampleValue in plotData
                               select (double)plotSampleValue.AccelerometerValue.X).ToArray();
                 var axis_y = (from plotSampleValue in plotData
@@ -109,46 +139,63 @@ namespace VR33B.LineGraphic
                 {
                     return _DateTimeToAbscissa(input.SampleDateTime);
                 }).ToArray();
-                if(repaintGuid == _LatestRepaintGuid)
-                {
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        XLineGraph.Plot(axis_datetime, axis_x);
-                        YLineGraph.Plot(axis_datetime, axis_y);
-                        ZLineGraph.Plot(axis_datetime, axis_z);
+                System.Diagnostics.Debug.WriteLine("AfterSort:" + (DateTime.Now - beforeLookup).TotalMilliseconds + " PlotBatch:" + _CurrPlotBatch);
 
-                        if(plotMarkers)
-                        {
-                            XMarkerGraph.PlotXY(axis_datetime, axis_x);
-                            YMarkerGraph.PlotXY(axis_datetime, axis_y);
-                            ZMarkerGraph.PlotXY(axis_datetime, axis_z);
-                        }
-                    });
-                }
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    if (plotCount == 0)
+                    {
+                        return;
+                    }
+                    long currPlotBatch = _CurrPlotBatch;
+                    System.Diagnostics.Debug.WriteLine("BeginPlot:" + (DateTime.Now - beforeLookup).TotalMilliseconds + " PlotBatch:" + currPlotBatch);
+                    XLineGraph.Plot(axis_datetime, axis_x);
+                    YLineGraph.Plot(axis_datetime, axis_y);
+                    ZLineGraph.Plot(axis_datetime, axis_z);
+
+                    if (plotMarkers && plotCount <= _MaxMarkerCountInLoadedRangePerAxis)
+                    {
+                        XMarkerGraph.PlotXY(axis_datetime, axis_x);
+                        YMarkerGraph.PlotXY(axis_datetime, axis_y);
+                        ZMarkerGraph.PlotXY(axis_datetime, axis_z);
+                    }
+                    else
+                    {
+                        XMarkerGraph.PlotXY(new double[0], new double[0]);
+                        YMarkerGraph.PlotXY(new double[0], new double[0]);
+                        ZMarkerGraph.PlotXY(new double[0], new double[0]);
+                    }
+                    if (plotRect != null)
+                    {
+                        XLineGraph.SetPlotRect((DataRect)plotRect);
+                    }
+                    System.Diagnostics.Debug.WriteLine("AfterPlot:" + (DateTime.Now - beforeLookup).TotalMilliseconds + " PlotBatch:" + currPlotBatch + "PlotCount:" + axis_datetime.Length);
+                });
             });
         }
-
+        private long _CurrPlotBatch;
         private async void _VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
         {
-            
+
             if (e.SampleIndex == 0)
             {
                 _ZeroAbscissaDateTime = e.SampleDateTime;
                 _LastPlotDateTime = DateTime.Now;
                 Dispatcher.Invoke(() =>
                 {
-                    XLineGraph.SetPlotRect(new DataRect(-1000, -40, 1000, 40));
+                    XLineGraph.SetPlotRect(new DataRect(-1000, -1, 1000, 1));
 
                 });
                 _LatestSampleValue = e;
             }
             else
             {
-                if(DateTime.Now - _LastPlotDateTime >= _UpdateInterval)
+                if (DateTime.Now - _LastPlotDateTime >= _UpdateInterval)
                 {
-                    
                     bool latestSampleValueOnScreen = _LatestSampleValue.SampleDateTime >= GraphDateTimeRange.GraphStartDateTime && _LatestSampleValue.SampleDateTime <= GraphDateTimeRange.GraphEndDateTime;
                     bool latestSampleValueOnLoadedRange = _LatestSampleValue.SampleDateTime >= _LoadedRangeDateTime.Start && _LatestSampleValue.SampleDateTime <= _LoadedRangeDateTime.End;
+                    DataRect rect = _LatestPlotRect;
+
 
                     if (TrackingModeOn)
                     {
@@ -158,31 +205,32 @@ namespace VR33B.LineGraphic
                             plotPosNorm = _DateTimeUnlerp(GraphDateTimeRange.GraphStartDateTime, GraphDateTimeRange.GraphEndDateTime, _LatestSampleValue.SampleDateTime);
                         }
                         plotPosNorm = 0.5;
-                        _LastPlotDateTime = DateTime.Now;
+
                         double displayRangeInMs = (GraphDateTimeRange.GraphEndDateTime - GraphDateTimeRange.GraphStartDateTime).TotalMilliseconds;
                         double latestValueInMs = displayRangeInMs * plotPosNorm;
                         var displayStartDateTime = e.SampleDateTime.Subtract(new TimeSpan(0, 0, 0, 0, (int)latestValueInMs));
                         var startX = _DateTimeToAbscissa(displayStartDateTime);
                         _LatestSampleValue = e;
 
-                        await Dispatcher.InvokeAsync(() =>
-                        {
-                            var currDataRect = XLineGraph.PlotRect;
-                            DataRect rect = new DataRect(startX, currDataRect.YMin, startX + currDataRect.Width, currDataRect.YMax);
-                            XLineGraph.SetPlotRect(rect);
-                            System.Diagnostics.Debug.WriteLine("RECT SET" + rect);
-                        });
+                        var currDataRect = _LatestPlotRect;
+                        rect = new DataRect(startX, currDataRect.YMin, startX + currDataRect.Width, currDataRect.YMax);
                     }
-                    _LatestSampleValue = e;
-                    if(TrackingModeOn)
+                    _LastPlotDateTime = DateTime.Now;
+                    if (TrackingModeOn)
                     {
-                        await ReplotAsync(false);
+                        _CurrPlotBatch++;
+                        System.Diagnostics.Debug.WriteLine("Thead:" + Thread.CurrentThread.ManagedThreadId + " PlotBatch:" + _CurrPlotBatch);
+                        await ReplotAsync(false, rect);
                     }
-                    else if(latestSampleValueOnLoadedRange)
+                    else if (latestSampleValueOnLoadedRange)
                     {
                         await ReplotAsync(true);
                     }
-                    
+
+
+                    _LatestSampleValue = e;
+
+
                 }
                 else
                 {
@@ -218,13 +266,13 @@ namespace VR33B.LineGraphic
             //XLineGraph.StrokeThickness = 2;
             //ZMarkerGraph.PlotXY(x, x.Select(v => Math.Sin(v + 0 / 10.0)).ToArray());
 
-            
+
 
         }
 
         private async void XLineGraph_PlotTransformChanged(object sender, EventArgs e)
         {
-            
+
             await Dispatcher.InvokeAsync(() =>
             {
                 _LatestPlotRect = XLineGraph.PlotRect;
@@ -233,7 +281,7 @@ namespace VR33B.LineGraphic
                 GraphEndDateTimeLabel.Content = GraphDateTimeRange.GraphEndDateTime;
             });
 
-            if(!TrackingModeOn || !VR33BTerminal.Sampling)
+            if (!TrackingModeOn || !VR33BTerminal.Sampling)
             {
                 var reloadBorderLeftFromloadBorderLeftTimeSpan = new TimeSpan(0, 0, 0, 0, (int)((_LoadedRangeDateTime.End - _LoadedRangeDateTime.Start).TotalMilliseconds * _ReloadRangeAndLoadedRangeRatio));
                 var reloadBorderLeftDateTime = _LoadedRangeDateTime.Start.Add(reloadBorderLeftFromloadBorderLeftTimeSpan);
@@ -253,7 +301,7 @@ namespace VR33B.LineGraphic
                     }
                 }
             }
-            
+
         }
 
         private async void Button_Click(object sender, RoutedEventArgs e)

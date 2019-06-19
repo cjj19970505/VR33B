@@ -55,7 +55,7 @@ namespace VR33B.LineGraphic
             SampleDataListView.ItemsSource = TestTable;
             //TestTable.CollectionChanged += TestTable_CollectionChanged;
 
-            VR33BTerminal = new VR33BTerminal(true);
+            VR33BTerminal = new VR33BTerminal();
             VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
 
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
@@ -68,7 +68,7 @@ namespace VR33B.LineGraphic
         {
             Dispatcher.Invoke(() =>
             {
-                TestTable.Insert(0, e);
+                //TestTable.Insert(0, e);
             });
             
         }
@@ -76,7 +76,7 @@ namespace VR33B.LineGraphic
         private void VR33BTerminal_OnSerialPortSent(object sender, VR33BSendData e)
         {
             this.Dispatcher.Invoke(new Action(() => {
-                SendDataStrs.Insert(0, e.ToString());
+                //SendDataStrs.Insert(0, e.ToString());
                 
             }));
             
@@ -91,21 +91,19 @@ namespace VR33B.LineGraphic
             
         }
 
-        private void OpenSerialPortBtn_Click(object sender, RoutedEventArgs e)
+        private async void OpenSerialPortBtn_Click(object sender, RoutedEventArgs e)
         {
             SendDataStrs.Clear();
             //SendCommandListBox.ItemsSource = SendDataStrs;
             ReceiveDataStrs.Clear();
             TestTable.Clear();
-            try
+            await VR33BTerminal.ConnectAsync();
+            await Dispatcher.InvokeAsync(() =>
             {
-                VR33BTerminal.SerialPort.Open();
-            }
-            catch(Exception)
-            {
-                System.Diagnostics.Debug.WriteLine("PORT IS USING");
-            }
-            
+                SetSampleFrequencyComboBox.SelectedItem = VR33BTerminal.LatestSetting.SampleFrequence;
+            });
+
+
         }
 
         private async void SendTestMsgBtn_Click(object sender, RoutedEventArgs e)
@@ -199,16 +197,9 @@ namespace VR33B.LineGraphic
             {
                 return;
             }
+
             var selectedItem = (VR33BSampleFrequence)SetSampleFrequencyComboBox.SelectedItem;
-            var response = await VR33BTerminal.SendCommandAsync(new SetSampleFrequencyCommand(VR33BTerminal, selectedItem));
-            if (response.Success)
-            {
-                System.Diagnostics.Debug.WriteLine(response.Response);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine("Failed");
-            }
+            var response = await VR33BTerminal.SetSampleFrequencyAsync(selectedItem);
         }
     }
 }

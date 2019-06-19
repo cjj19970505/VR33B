@@ -53,8 +53,34 @@ namespace VR33B
             
         }
 
-        public static VR33BSampleValue FromVR33BReceiveData(VR33BReceiveData receiveData, VR33BSetting vr33bSetting)
+        public static VR33BSampleValue FromVR33BReceiveData(VR33BReceiveData receiveData, VR33BSetting vr33bSetting, long index)
         {
+            DateTime tempBaseDateTime = new DateTime(2008, 2, 12, 10, 5, 10);
+            double durationInMs = 0;
+            switch(vr33bSetting.SampleFrequence)
+            {
+                case VR33BSampleFrequence._1Hz:
+                    durationInMs = 1000.0 / 1;
+                    break;
+                case VR33BSampleFrequence._5Hz:
+                    durationInMs = 1000.0 / 5;
+                    break;
+                case VR33BSampleFrequence._20Hz:
+                    durationInMs = 1000.0 / 20;
+                    break;
+                case VR33BSampleFrequence._50Hz:
+                    durationInMs = 1000.0 / 50;
+                    break;
+                case VR33BSampleFrequence._100Hz:
+                    durationInMs = 1000.0 / 100;
+                    break;
+                case VR33BSampleFrequence._200Hz:
+                    durationInMs = 1000.0 / 200;
+                    break;
+                default:
+                    durationInMs = 1000;
+                    break;
+            }
             byte[] xBytes = new byte[] { receiveData.Data[1], receiveData.Data[0] };
             byte[] yBytes = new byte[] { receiveData.Data[3], receiveData.Data[2] };
             byte[] zBytes = new byte[] { receiveData.Data[5], receiveData.Data[4] };
@@ -67,8 +93,8 @@ namespace VR33B
             UInt16 rawH = BitConverter.ToUInt16(hBytes, 0);
             VR33BSampleValue sampleValue = new VR33BSampleValue()
             {
-                SampleDateTime = DateTime.Now,
-
+                SampleIndex = index,
+                SampleDateTime = tempBaseDateTime.Add(new TimeSpan(0, 0, 0, 0, (int)(durationInMs * index))),
                 RawAccelerometerValue = (rawX, rawY, rawZ),
                 RawTemperature = rawT,
                 RawHumidity = rawH

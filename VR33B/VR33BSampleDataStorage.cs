@@ -19,6 +19,12 @@ namespace VR33B
         private SQLiteConnection _DBConnection;
         private object _SampleValuesLock;
         private List<VR33BSampleValue> _SampleValues;
+
+        /// <summary>
+        /// key: SampleIndex
+        /// 
+        /// </summary>
+        private List<VR33BSampleValue> _OutOfOrderSampleValueBuffer;
         public event EventHandler<VR33BSampleValue> Updated;
 
         public VR33BTerminal VR33BTerminal
@@ -45,8 +51,10 @@ namespace VR33B
         public VR33BSampleDataStorage(VR33BTerminal vr33bTerminal)
         {
             _SampleValues = new List<VR33BSampleValue>();
+            _OutOfOrderSampleValueBuffer = new List<VR33BSampleValue>();
             _SampleValuesLock = new object();
             VR33BTerminal = vr33bTerminal;
+            
         }
 
         private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
@@ -60,8 +68,46 @@ namespace VR33B
             {
                 lock (_SampleValuesLock)
                 {
-                    _SampleValues.Add(e);
+                    if (_SampleValues.Count > 0)
+                    {
+                        if (e.SampleIndex == _SampleValues.Last().SampleIndex+1)
+                        {
+                            _SampleValues.Add(e);
+                            while(_OutOfOrderSampleValueBuffer.Count != 0 && _OutOfOrderSampleValueBuffer[0].SampleIndex == _SampleValues.Last().SampleIndex + 1)
+                            {
+                                _SampleValues.Add(_OutOfOrderSampleValueBuffer[0]);
+                                _OutOfOrderSampleValueBuffer.RemoveAt(0);
+                            }
+                        }
+                        else
+                        {
+                            _OutOfOrderSampleValueBuffer.Add(e);
+                            _OutOfOrderSampleValueBuffer.Sort((x, y) =>
+                            {
+                                if (x.SampleIndex > y.SampleIndex)
+                                {
+                                    return 1;
+                                }
+                                else if (x.SampleIndex < y.SampleIndex)
+                                {
+                                    return -1;
+                                }
+                                else
+                                {
+                                    return 0;
+                                }
+                            });
+                        }
+
+                    }
+                    else
+                    {
+                        _SampleValues.Add(e);
+                    }
+                    
+                    
                 }
+                
                 Updated?.Invoke(this, e);
             });
             
