@@ -142,6 +142,9 @@
     <Compile Include="VR33BGraph.xaml.cs">
       <DependentUpon>VR33BGraph.xaml</DependentUpon>
     </Compile>
+    <Compile Include="VR33BOxyLegendControl.xaml.cs">
+      <DependentUpon>VR33BOxyLegendControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="VR33BOxyPlotControl.xaml.cs">
       <DependentUpon>VR33BOxyPlotControl.xaml</DependentUpon>
     </Compile>
@@ -180,6 +183,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="VR33BGraph.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="VR33BOxyLegendControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
