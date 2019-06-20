@@ -25,10 +25,12 @@ namespace VR33B.UI
         public MainWindow()
         {
             InitializeComponent();
+            SerialPortControlPage.OnStateChanged += SerialPortControlPage_OnStateChanged;
+        }
 
-
-            serialPort = new SerialPort();
-            serialPort.DataReceived += SerialPort_DataReceived;
+        private void SerialPortControlPage_OnStateChanged(string stateMessage)
+        {
+            StateBlock.Text = stateMessage;
         }
 
         //接收到数据
@@ -38,36 +40,5 @@ namespace VR33B.UI
             string indata = sp.ReadExisting();
             //ReceivedRawDataBox.AppendText(indata);
         }
-
-        private ObservableCollection<string> serialPortNames;
-        private ObservableCollection<int> baudRates = new ObservableCollection<int> { 9600 };
-        private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
-
-        SerialPort serialPort;
-        private void SwitchPortButton_Click(object sender, RoutedEventArgs e)
-        {
-            //serialPort.PortName = (string)SerialNoBox.SelectedItem;
-            //serialPort.BaudRate = (int)BaudRateBox.SelectedItem;
-            //serialPort.DataBits = (int)DataBitBox.SelectedItem;
-            //serialPort.Parity = (Parity)ParityBitBox.SelectedItem;
-            //serialPort.StopBits = (StopBits)StopBitBox.SelectedItem;
-            try
-            {
-                if (!serialPort.IsOpen)
-                {
-                    serialPort.Open();
-                }
-                else
-                {
-                    serialPort.Close();
-                }
-            }
-            catch (Exception exception)
-            {
-                StateBox.Text = exception.Message;
-            }
-        }
-
-
     }
 }

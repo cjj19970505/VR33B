@@ -33,7 +33,7 @@
         </TabControl>
         <Grid  Background="LightGray" Grid.Row="1" VerticalAlignment="Bottom">
             <Grid x:Name="StateBar" Margin="10, 5,  10, 5">
-                <TextBlock x:Name="StateBox" VerticalAlignment="Center"></TextBlock>
+                <TextBlock x:Name="StateBlock" VerticalAlignment="Center"></TextBlock>
             </Grid>
         </Grid>
     </Grid>

@@ -40,5 +40,10 @@ namespace VR33B.UI
         {
             SamplingThresholdValueBlock.Text = ((int)e.NewValue).ToString() + "%";
         }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            SamplingThresholdSlider.Width = SamplingThresholdColumn.ActualWidth - SamplingThresholdValueBlock.ActualWidth - 15;
+        }
     }
 }
