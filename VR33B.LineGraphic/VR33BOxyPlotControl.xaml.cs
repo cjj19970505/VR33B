@@ -62,7 +62,7 @@ namespace VR33B.LineGraphic
         /// <summary>
         /// 看笔记
         /// </summary>
-        private double _LoadedRangeAndDisplayRangeRatio = 2;
+        private double _LoadedRangeAndDisplayRangeRatio = 3;
         /// <summary>
         /// 看笔记
         /// </summary>
@@ -72,7 +72,7 @@ namespace VR33B.LineGraphic
         /// 这个数值表示在TrackingMode时在载入区域中最多的采样点
         /// 处于TrackingMode时数据不断加载，因此减少采样量以达到流畅
         /// </summary>
-        private int _MaxLoadedSampleCountInTracking = 300;
+        private int _MaxLoadedSampleCountInTracking = 1000;
 
         private (TimeSpan Left, TimeSpan Right) _LoadedRangeTimeSpan;
 
@@ -80,7 +80,7 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                return new TimeSpan(0, 0, 0, 0, 30);
+                return new TimeSpan(0, 0, 0, 0, 0);
             }
         }
 
@@ -92,7 +92,6 @@ namespace VR33B.LineGraphic
         bool _TrackingModeReploting = false;
         private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
         {
-            System.Diagnostics.Debug.WriteLine("REPLOT0");
             if (e.SampleIndex == 0)
             {
                 Inited = true;
@@ -100,7 +99,6 @@ namespace VR33B.LineGraphic
             }
             if (DateTime.Now - _LastPlotDateTime >= _UpdateInterval && !_TrackingModeReploting)
             {
-                System.Diagnostics.Debug.WriteLine("REPLOT1");
                 _LastPlotDateTime = DateTime.Now;
                 _TrackingModeReploting = true;
                 await _ReplotAsync();
@@ -131,6 +129,7 @@ namespace VR33B.LineGraphic
                 {
                     return;
                 }
+                
                 int beforeDownsample = plotData.Count;
                 if (TrackingModeOn)
                 {
@@ -143,6 +142,7 @@ namespace VR33B.LineGraphic
                         plotCount = plotData.Count;
                     }
                 }
+                System.Diagnostics.Debug.WriteLine(plotCount);
                 int downSample = plotCount;
                 var xDataPoint = (from sampleValue in plotData
                                   select new DataPoint(TimeSpanAxis.ToDouble(sampleValue.SampleDateTime - _FirstSampleDateTime), sampleValue.AccelerometerValue.X)).ToList();
@@ -170,12 +170,6 @@ namespace VR33B.LineGraphic
                     _LoadedSampleValues = plotData.ToArray();
                     OxyPlotView.InvalidatePlot();
                 }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("SHIT");
-                }
-                
-
             });
         }
 
@@ -191,19 +185,19 @@ namespace VR33B.LineGraphic
 
             XLineSeries = new LineSeries();
             XLineSeries.Color = OxyColors.Red;
-            XLineSeries.MarkerType = MarkerType.Circle;
-            XLineSeries.MarkerFill = XLineSeries.Color;
+            //XLineSeries.MarkerType = MarkerType.Circle;
+            //XLineSeries.MarkerFill = XLineSeries.Color;
 
 
             YLineSeries = new LineSeries();
             YLineSeries.Color = OxyColors.Green;
-            YLineSeries.MarkerType = MarkerType.Circle;
-            YLineSeries.MarkerFill = YLineSeries.Color;
+            //YLineSeries.MarkerType = MarkerType.Circle;
+            //YLineSeries.MarkerFill = YLineSeries.Color;
 
             ZLineSeries = new LineSeries();
             ZLineSeries.Color = OxyColors.Blue;
-            ZLineSeries.MarkerType = MarkerType.Circle;
-            ZLineSeries.MarkerFill = ZLineSeries.Color;
+            //ZLineSeries.MarkerType = MarkerType.Circle;
+            //ZLineSeries.MarkerFill = ZLineSeries.Color;
 
 
             OxyPlotModel.Series.Add(XLineSeries);

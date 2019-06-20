@@ -71,13 +71,14 @@ namespace VR33B
 
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
-            lock(_BeforeStoreBufferLock)
+            lock (_BeforeStoreBufferLock)
             {
                 _BeforeStoreBuffer.Add(e);
             }
             await Task.Run(() =>
             {
-                lock(_SampleValuesLock)
+                
+                lock (_SampleValuesLock)
                 {
                     lock(_BeforeStoreBufferLock)
                     {
@@ -85,9 +86,9 @@ namespace VR33B
                         _BeforeStoreBuffer.Clear();
                     }
                 }
-                
+                Updated?.Invoke(this, e);
             });
-            Updated?.Invoke(this, e);
+            
 
         }
 
