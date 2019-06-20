@@ -35,7 +35,6 @@ namespace VR33B.LineGraphic
         public MainWindow()
         {
             InitializeComponent();
-            System.Diagnostics.Debug.WriteLine("UIThreadId:" + Thread.CurrentThread.ManagedThreadId);
             DataContext = this;
             SendDataStrs = new ObservableCollection<string>();
             SendCommandListBox.ItemsSource = SendDataStrs;

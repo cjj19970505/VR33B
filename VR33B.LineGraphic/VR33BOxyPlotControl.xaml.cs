@@ -41,12 +41,29 @@ namespace VR33B.LineGraphic
                 if (_VR33BTerminal != null)
                 {
                     _VR33BTerminal.VR33BSampleDataStorage.Updated -= VR33BSampleDataStorage_Updated;
+                    _VR33BTerminal.OnVR33BSampleStarted -= _VR33BTerminal_OnVR33BSampleStarted;
+                    _VR33BTerminal.OnVR33BSampleEnded -= _VR33BTerminal_OnVR33BSampleEnded;
                     //_VR33BTerminal.OnVR33BSampleValueReceived -= VR33BSampleDataStorage_Updated;
                 }
                 _VR33BTerminal = value;
                 _VR33BTerminal.VR33BSampleDataStorage.Updated += VR33BSampleDataStorage_Updated;
+                _VR33BTerminal.OnVR33BSampleStarted += _VR33BTerminal_OnVR33BSampleStarted;
+                _VR33BTerminal.OnVR33BSampleEnded += _VR33BTerminal_OnVR33BSampleEnded;
                 //_VR33BTerminal.OnVR33BSampleValueReceived += VR33BSampleDataStorage_Updated;
             }
+        }
+
+        private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
+        {
+            //throw new NotImplementedException();
+        }
+
+        private void _VR33BTerminal_OnVR33BSampleStarted(object sender, EventArgs e)
+        {
+            _LoadedSampleValues = new VR33BSampleValue[0];
+            TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * 0.5 + _LatestPlotAxisActualMinMax.ActualMinimum) - 0) * TimeSpanPlotAxis.Scale);
+            OxyPlotView.InvalidatePlot();
+
         }
 
         public bool TrackingModeOn { get; set; }
@@ -80,7 +97,7 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                return new TimeSpan(0, 0, 0, 0, 0);
+                return new TimeSpan(0, 0, 0, 0, 15);
             }
         }
 
@@ -142,7 +159,6 @@ namespace VR33B.LineGraphic
                         plotCount = plotData.Count;
                     }
                 }
-                System.Diagnostics.Debug.WriteLine(plotCount);
                 int downSample = plotCount;
                 var xDataPoint = (from sampleValue in plotData
                                   select new DataPoint(TimeSpanAxis.ToDouble(sampleValue.SampleDateTime - _FirstSampleDateTime), sampleValue.AccelerometerValue.X)).ToList();
