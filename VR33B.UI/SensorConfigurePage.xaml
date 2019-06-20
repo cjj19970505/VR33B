@@ -43,7 +43,7 @@
                                 <ComboBoxItem Content="100Hz" Tag="100Hz"></ComboBoxItem>
                             </ComboBox>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar x:Name="SamplingRateRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" Visibility="Collapsed" />
                             </Viewbox>
                             <TextBlock Grid.Column="3" Text="采样阈值：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <StackPanel Grid.Column="4" Orientation="Horizontal">
@@ -51,7 +51,7 @@
                                 <TextBlock x:Name="SamplingThresholdValueBlock" Text="0%" VerticalAlignment="Center"></TextBlock>
                             </StackPanel>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="SamplingThresholdRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </Grid>
                         <Grid Grid.Row="1" Margin="0, 0, 0, 10">
@@ -66,12 +66,12 @@
                             <TextBlock Grid.Column="0" Text="当前时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <DatePicker x:Name="CurrentDatePicker" Grid.Column="1" Margin="0, 0, 10, 0"></DatePicker>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="CurrentDateProgressRing"  Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Grid.Column="3" Text="预约时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center" ></TextBlock>
                             <DatePicker x:Name="SessionPicker" Grid.Column="4" Margin="0, 0, 10, 0"></DatePicker>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="SessionPickerProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </Grid>
                         <Grid Grid.Row="2" Margin="0, 0, 0, 10">
@@ -86,12 +86,12 @@
                             <TextBlock Grid.Column="0" Text="地址：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AddressBox" Grid.Column="1" VerticalAlignment="Center" Margin="0, 0, 10, 0"></TextBox>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AddressBoxProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" Grid.Column="3" VerticalAlignment="Center"></TextBlock>
                             <ComboBox x:Name="SensorBaudRateBox" Grid.Column="4" VerticalAlignment="Center" Margin="0, 0, 10, 0"></ComboBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="SensorBaudRateProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </Grid>
                         <Grid Grid.Row="3" Margin="0, 0, 0, 10">
@@ -106,12 +106,12 @@
                             <TextBlock Grid.Column="0" Text="校验位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <ComboBox x:Name="SensorParityBox" Grid.Column="1" Margin="0, 0, 10, 0" VerticalAlignment="Center"></ComboBox>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="SensorParityProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Text="停止位：" Grid.Column="3" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <ComboBox x:Name="SensorStopBitBox" Grid.Column="4" Margin="0, 0, 10, 0"></ComboBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="SensorStopBitProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </Grid>
                     </Grid>
@@ -127,7 +127,7 @@
                             <ComboBoxItem Content="16g"></ComboBoxItem>
                         </ComboBox>
                         <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                            <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                            <ProgressBar Visibility="Collapsed" x:Name="AccelerometerRangeProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                         </Viewbox>
                     </StackPanel>
                     <StackPanel x:Name="AccelerometerZeroPointPanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
@@ -136,21 +136,21 @@
                             <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AccelerometerZeroPointXBox" Width="30"></TextBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerZeroPointXProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
                             <TextBlock Text="Y：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AccelerometerZeroPointYBox" Width="30"></TextBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerZeroPointYProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,  0, 10, 0">
                             <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AccelerometerZeroPointZBox" Width="30"></TextBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerZeroPointZProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </StackPanel>
                     </StackPanel>
@@ -160,21 +160,21 @@
                             <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AccelerometerSensibilityXBox" Width="30"></TextBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerSensibilityXProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
                             <TextBlock Text="Y：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AccelerometerSensibilityYBox" Width="30"></TextBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerSensibilityYProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,  0, 10, 0">
                             <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <TextBox x:Name="AccelerometerSensibilityZBox" Width="30"></TextBox>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
+                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerSensibilityZProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </StackPanel>
                     </StackPanel>
