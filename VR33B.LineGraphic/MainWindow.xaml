@@ -29,9 +29,7 @@
         <ListBox x:Name="ReceiveCommandListBox" HorizontalAlignment="Left" Height="162" Margin="155,207,0,0" VerticalAlignment="Top" Width="309" Grid.ColumnSpan="2" VirtualizingStackPanel.VirtualizationMode="Recycling"/>
         <Button x:Name="ReadAccmeterButton" Content="ReadAcc" HorizontalAlignment="Left" Margin="21,231,0,0" VerticalAlignment="Top" Width="75" Click="ReadAccmeterButton_Click"/>
         <CheckBox x:Name="SamplingCheckBox" Content="Sampling" HorizontalAlignment="Left" Margin="21,267,0,0" VerticalAlignment="Top" Checked="SamplingCheckBox_Checked" Unchecked="SamplingCheckBox_Unchecked"/>
-        <Grid x:Name="VR33BGraphGrid" Grid.Column="1" HorizontalAlignment="Left" Height="344" Margin="10,36,0,0" VerticalAlignment="Top" Width="647">
-            <local:VR33BGraph x:Name="VR33BGraph"/>
-        </Grid>
+        <local:VR33BOxyPlotControl x:Name="VR33BGraph" Margin="28,36,30.5,283.5" Grid.Column="1"/>
         <ListView x:Name="SampleDataListView" HorizontalAlignment="Left" Height="244" Margin="21,463,0,0" VerticalAlignment="Top" Width="1136" Grid.ColumnSpan="2" ItemsSource ="{Binding Path=TestTable}" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling" ScrollViewer.IsDeferredScrollingEnabled="true">
             <ListView.View>
                 <GridView>

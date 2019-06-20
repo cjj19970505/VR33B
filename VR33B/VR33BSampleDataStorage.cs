@@ -27,6 +27,9 @@ namespace VR33B
         private List<VR33BSampleValue> _OutOfOrderSampleValueBuffer;
         public event EventHandler<VR33BSampleValue> Updated;
 
+        private List<VR33BSampleValue> _BeforeStoreBuffer;
+        private object _BeforeStoreBufferLock;
+
         public VR33BTerminal VR33BTerminal
         {
             get
@@ -54,7 +57,11 @@ namespace VR33B
             _OutOfOrderSampleValueBuffer = new List<VR33BSampleValue>();
             _SampleValuesLock = new object();
             VR33BTerminal = vr33bTerminal;
-            
+
+            _BeforeStoreBuffer = new List<VR33BSampleValue>();
+            _BeforeStoreBufferLock = new object();
+
+
         }
 
         private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
@@ -64,53 +71,24 @@ namespace VR33B
 
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
+            lock(_BeforeStoreBufferLock)
+            {
+                _BeforeStoreBuffer.Add(e);
+            }
             await Task.Run(() =>
             {
-                lock (_SampleValuesLock)
+                lock(_SampleValuesLock)
                 {
-                    if (_SampleValues.Count > 0)
+                    lock(_BeforeStoreBufferLock)
                     {
-                        if (e.SampleIndex == _SampleValues.Last().SampleIndex+1)
-                        {
-                            _SampleValues.Add(e);
-                            while(_OutOfOrderSampleValueBuffer.Count != 0 && _OutOfOrderSampleValueBuffer[0].SampleIndex == _SampleValues.Last().SampleIndex + 1)
-                            {
-                                _SampleValues.Add(_OutOfOrderSampleValueBuffer[0]);
-                                _OutOfOrderSampleValueBuffer.RemoveAt(0);
-                            }
-                        }
-                        else
-                        {
-                            _OutOfOrderSampleValueBuffer.Add(e);
-                            _OutOfOrderSampleValueBuffer.Sort((x, y) =>
-                            {
-                                if (x.SampleIndex > y.SampleIndex)
-                                {
-                                    return 1;
-                                }
-                                else if (x.SampleIndex < y.SampleIndex)
-                                {
-                                    return -1;
-                                }
-                                else
-                                {
-                                    return 0;
-                                }
-                            });
-                        }
-
+                        _SampleValues.AddRange(_BeforeStoreBuffer);
+                        _BeforeStoreBuffer.Clear();
                     }
-                    else
-                    {
-                        _SampleValues.Add(e);
-                    }
-                    
-                    
                 }
                 
-                Updated?.Invoke(this, e);
             });
-            
+            Updated?.Invoke(this, e);
+
         }
 
         private void _VR33BTerminal_OnVR33BSampleStarted(object sender, EventArgs e)
@@ -118,6 +96,7 @@ namespace VR33B
             lock(_SampleValuesLock)
             {
                 _SampleValues.Clear();
+                _BeforeStoreBuffer.Clear();
             }
         }
 

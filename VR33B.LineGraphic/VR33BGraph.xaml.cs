@@ -214,7 +214,12 @@ namespace VR33B.LineGraphic
                 {
                     return _DateTimeToAbscissa(input.SampleDateTime);
                 }).ToArray();
-                if(trackingPlot)
+                if (plotCount > 0)
+                {
+                    _LatestSampleValue = plotData.Last();
+                }
+                
+                if (trackingPlot)
                 {
                     lock (_ReplotRequestListLock)
                     {
@@ -267,7 +272,7 @@ namespace VR33B.LineGraphic
                         double latestValueInMs = displayRangeInMs * plotPosNorm;
                         var displayStartDateTime = e.SampleDateTime.Subtract(new TimeSpan(0, 0, 0, 0, (int)latestValueInMs));
                         var startX = _DateTimeToAbscissa(displayStartDateTime);
-                        _LatestSampleValue = e;
+                        //_LatestSampleValue = e;
 
                         var currDataRect = _LatestPlotRect;
                         rect = new DataRect(startX, currDataRect.YMin, startX + currDataRect.Width, currDataRect.YMax);
@@ -315,7 +320,7 @@ namespace VR33B.LineGraphic
             _ReplotRequestListLock = new object();
             _TrackingModeReplotTimer = new DispatcherTimer(DispatcherPriority.Render, Dispatcher);
             
-            _TrackingModeReplotTimer.Tick += _TrackingModeReplotTimer_Tick;
+            //_TrackingModeReplotTimer.Tick += _TrackingModeReplotTimer_Tick;
             //AddPoints();
             double[] x = new double[200];
             for (int i = 0; i < x.Length; i++)
@@ -325,9 +330,6 @@ namespace VR33B.LineGraphic
 
             //XLineGraph.StrokeThickness = 2;
             //ZMarkerGraph.PlotXY(x, x.Select(v => Math.Sin(v + 0 / 10.0)).ToArray());
-
-
-
         }
 
         private async void XLineGraph_PlotTransformChanged(object sender, EventArgs e)
@@ -393,8 +395,9 @@ namespace VR33B.LineGraphic
             }
         }
 
-        private async void Button_Click(object sender, RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
+            _TrackingModeReplotTimer_Tick(null, null);
         }
 
 

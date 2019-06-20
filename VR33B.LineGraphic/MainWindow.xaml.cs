@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,6 +35,8 @@ namespace VR33B.LineGraphic
         public MainWindow()
         {
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("UIThreadId:" + Thread.CurrentThread.ManagedThreadId);
+            DataContext = this;
             SendDataStrs = new ObservableCollection<string>();
             SendCommandListBox.ItemsSource = SendDataStrs;
             SendDataStrs.Add("sdfas");
@@ -55,7 +58,7 @@ namespace VR33B.LineGraphic
             SampleDataListView.ItemsSource = TestTable;
             //TestTable.CollectionChanged += TestTable_CollectionChanged;
 
-            VR33BTerminal = new VR33BTerminal();
+            VR33BTerminal = new VR33BTerminal(false);
             VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
 
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;
