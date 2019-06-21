@@ -97,7 +97,21 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                return new TimeSpan(0, 0, 0, 0, 15);
+                //return new TimeSpan(0, 0, 0, 0, 200);
+                if(_LatestPlotTimeSpan.TotalMilliseconds >= 1)
+                {
+                    System.Diagnostics.Debug.WriteLine(_LatestPlotTimeSpan.TotalMilliseconds);
+                }
+                var possibleInterval = new TimeSpan(0, 0, 0, 0, 15) + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 150);
+                if(possibleInterval < TimeSpan.FromMilliseconds(500))
+                {
+                    return possibleInterval;
+                }
+                else
+                {
+                    return TimeSpan.FromMilliseconds(500);
+                }
+                
             }
         }
 
@@ -201,24 +215,29 @@ namespace VR33B.LineGraphic
 
             XLineSeries = new LineSeries();
             XLineSeries.Color = OxyColors.Red;
-            //XLineSeries.MarkerType = MarkerType.Circle;
-            //XLineSeries.MarkerFill = XLineSeries.Color;
-
+            XLineSeries.MarkerType = MarkerType.Circle;
+            XLineSeries.MarkerFill = XLineSeries.Color;
+            XLineSeries.Title = "X-Axis";
 
             YLineSeries = new LineSeries();
             YLineSeries.Color = OxyColors.Green;
-            //YLineSeries.MarkerType = MarkerType.Circle;
-            //YLineSeries.MarkerFill = YLineSeries.Color;
+            YLineSeries.MarkerType = MarkerType.Circle;
+            YLineSeries.MarkerFill = YLineSeries.Color;
+            YLineSeries.Title = "Y-Axis";
 
             ZLineSeries = new LineSeries();
             ZLineSeries.Color = OxyColors.Blue;
-            //ZLineSeries.MarkerType = MarkerType.Circle;
-            //ZLineSeries.MarkerFill = ZLineSeries.Color;
-
+            ZLineSeries.MarkerType = MarkerType.Circle;
+            ZLineSeries.MarkerFill = ZLineSeries.Color;
+            ZLineSeries.Title = "Y-Axis";
 
             OxyPlotModel.Series.Add(XLineSeries);
             OxyPlotModel.Series.Add(YLineSeries);
             OxyPlotModel.Series.Add(ZLineSeries);
+
+            XAxisLegendView.DataContext = XLineSeries;
+            YAxisLegendView.DataContext = YLineSeries;
+            ZAxisLegendView.DataContext = ZLineSeries;
 
             TimeSpanPlotAxis = new TimeSpanAxis { Position = AxisPosition.Bottom, Minimum = TimeSpanAxis.ToDouble(new TimeSpan(0, 0, -1)), Maximum = TimeSpanAxis.ToDouble(new TimeSpan(0, 0, 1)) };
             OxyPlotModel.Axes.Add(TimeSpanPlotAxis);
@@ -230,16 +249,18 @@ namespace VR33B.LineGraphic
 
             TrackingModeOn = true;
         }
-        bool _OxyPlotUpdating = false;
+        DateTime _LatestBeginPlotDateTime = DateTime.Now;
+        TimeSpan _LatestPlotTimeSpan = new TimeSpan(0);
         private void OxyPlotModel_Updated(object sender, EventArgs e)
         {
-            _OxyPlotUpdating = false;
+            //System.Diagnostics.Debug.WriteLine("PlotTimeSpan:"+(DateTime.Now - _LatestBeginPlotDateTime).TotalMilliseconds);
+            _LatestPlotTimeSpan = DateTime.Now - _LatestBeginPlotDateTime;
             //System.Diagnostics.Debug.WriteLine("Updated"+DateTime.Now);
         }
 
         private async void OxyPlotModel_Updating(object sender, EventArgs e)
         {
-            _OxyPlotUpdating = true;
+            _LatestBeginPlotDateTime = DateTime.Now;
             _LatestPlotAxisActualMinMax = (TimeSpanPlotAxis.ActualMinimum, TimeSpanPlotAxis.ActualMaximum);
             if (!Inited)
             {
@@ -263,19 +284,6 @@ namespace VR33B.LineGraphic
                     await _ReplotAsync();
                 }
             }
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            //PlotAxis.Pan((TimeSpanAxis.ToDouble(TimeSpan.FromSeconds(1))* PlotAxis.Scale));
-            //XLineSeries.Points.Add(new DataPoint(TimeSpanAxis.ToDouble(new TimeSpan(0, 0, 10)), 10));
-            //XLineSeries.Points.Add(new DataPoint(TimeSpanAxis.ToDouble(new TimeSpan(0, 0, 20)), 10));
-
-
-            //Make 0:0:5 the center
-            TimeSpanPlotAxis.Pan(((TimeSpanPlotAxis.ActualMinimum + TimeSpanPlotAxis.ActualMaximum) / 2 - TimeSpanAxis.ToDouble(TimeSpan.FromSeconds(5))) * TimeSpanPlotAxis.Scale);
-
-            OxyPlotView.InvalidatePlot();
         }
     }
 

@@ -5,20 +5,24 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VR33B.LineGraphic"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" DataContextChanged="UserControl_DataContextChanged">
+    <UserControl.Resources>
+
+        <local:OxyColorToBrushConverter x:Key="OxyColorToBrushConverter"/>
+    </UserControl.Resources>
     
     <StackPanel Orientation="Horizontal">
-        <CheckBox x:Name="DisplayCheckBox" Content="Axis-X" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        <CheckBox x:Name="DisplayCheckBox" Content="Axis-X" HorizontalAlignment="Center" VerticalAlignment="Top" Checked="DisplayCheckBox_Checked" Unchecked="DisplayCheckBox_Unchecked"/>
         <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-                <Button x:Name="LineColorPickerBtn"  Width="20" Height="20" Margin="10,1,10,1" Background="Red" Foreground="Red" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                <Line Width="15" Height="15" X1="0" Y1="0" X2="15" Y2="15" Margin="10,1,10,1" Stroke="Red" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <Slider x:Name="LineStrokeSizeSlider" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button x:Name="LineColorPickerBtn"  Width="20" Height="20" Margin="10,1,10,1" Background="Red" Foreground="Red" HorizontalAlignment="Center" VerticalAlignment="Center" Click="LineColorPickerBtn_Click"/>
+                <Line x:Name="LineIcon" Width="15" Height="15" X1="0" Y1="0" X2="15" Y2="15" Margin="10,1,10,1" Stroke="Red" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Slider x:Name="LineStrokeSizeSlider" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" Minimum="1" Maximum="10" ValueChanged="LineStrokeSizeSlider_ValueChanged"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-                <Button x:Name="MarkerColorPickerBtn" Width="20" Height="20" Margin="10,1,10,1" Background="Red" Foreground="Red" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                <Ellipse Width="15" Height="15" Stroke="Red" Margin="10,1,10,1" StrokeThickness="5" Fill="Red"/>
-                <Slider x:Name="MarkerSizeSlider" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Button x:Name="MarkerColorPickerBtn" Width="20" Height="20" Margin="10,1,10,1" Background="Red" Foreground="Red" HorizontalAlignment="Center" VerticalAlignment="Center" Click="MarkerColorPickerBtn_Click"/>
+                <Ellipse x:Name="MarkerIcon" Width="15" Height="15" Stroke="Red" Margin="10,1,10,1" StrokeThickness="5" Fill="Red"/>
+                <Slider x:Name="MarkerSizeSlider" Width="40" HorizontalAlignment="Center" VerticalAlignment="Center" ValueChanged="MarkerSizeSlider_ValueChanged" Minimum="1" Maximum="10"/>
             </StackPanel>
         </StackPanel>
         

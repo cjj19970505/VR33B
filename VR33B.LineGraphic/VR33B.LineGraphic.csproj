@@ -138,6 +138,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions.cs" />
     <Compile Include="TestList.cs" />
     <Compile Include="VR33BGraph.xaml.cs">
       <DependentUpon>VR33BGraph.xaml</DependentUpon>

@@ -17,12 +17,14 @@
              FontFamily="{DynamicResource MaterialDesignFont}">
     <Grid>
         <oxy:PlotView x:Name="OxyPlotView"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="73,70,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <CheckBox Content="Tracking" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="{Binding Path=TrackingModeOn}"/>
-        <materialDesign:Card Margin="0,70,66,0" HorizontalAlignment="Right" VerticalAlignment="Top"  Height="117" Opacity="50" Width="201">
-            <StackPanel>
-                <local:VR33BOxyLegendControl/>
+        <CheckBox Content="Tracking" HorizontalAlignment="Left" VerticalAlignment="Top" IsChecked="{Binding Path=TrackingModeOn}" Margin="10"/>
+        <Expander HorizontalAlignment="Right" VerticalAlignment="Top" Header="设置">
+            <StackPanel Margin="5">
+                <local:VR33BOxyLegendControl x:Name="XAxisLegendView" Margin="5"/>
+                <local:VR33BOxyLegendControl x:Name="YAxisLegendView" Margin="5"/>
+                <local:VR33BOxyLegendControl x:Name="ZAxisLegendView" Margin="5"/>
             </StackPanel>
-        </materialDesign:Card>
+        </Expander>
+
     </Grid>
 </UserControl>

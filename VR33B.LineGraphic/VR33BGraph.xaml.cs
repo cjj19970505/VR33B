@@ -72,7 +72,7 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                return new TimeSpan(0, 0, 0, 0, 100);
+                return new TimeSpan(0, 0, 0, 0, 300);
             }
         }
 
