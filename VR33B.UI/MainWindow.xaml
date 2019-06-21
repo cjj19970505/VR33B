@@ -16,226 +16,24 @@
                 <TabItem.Header>
                     <TextBlock Text="串口设置" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
                 </TabItem.Header>
-                <Grid Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"></ColumnDefinition>
-                        <ColumnDefinition Width="auto"></ColumnDefinition>
-                        <ColumnDefinition></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel x:Name="SerialConfigurePanel" Grid.Column="0" VerticalAlignment="Stretch">
-                        <StackPanel x:Name="SerialNoPanel" Orientation="Horizontal">
-                            <TextBlock Text="串口号：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="SerialNoBox" Width="60" >
-                            </ComboBox>
-                        </StackPanel>
-                        <StackPanel x:Name="BaudRatePanel" Orientation="Horizontal">
-                            <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="BaudRateBox" Width="60"></ComboBox>
-                        </StackPanel>
-                        <StackPanel x:Name="DataBitPanel" Orientation="Horizontal">
-                            <TextBlock Text="数据位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="DataBitBox" Width="60"></ComboBox>
-                        </StackPanel>
-                        <StackPanel x:Name="StopBitPanel" Orientation="Horizontal">
-                            <TextBlock Text="停止位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="StopBitBox" Width="60"></ComboBox>
-                        </StackPanel>
-                        <StackPanel x:Name="ParityBitPanel" Orientation="Horizontal" Margin="0, 0, 0, 10">
-                            <TextBlock Text="校验位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="ParityBitBox" Width="60"></ComboBox>
-                        </StackPanel>
-                        <Button x:Name="SwitchPortButton" VerticalAlignment="Bottom" Content="打开/关闭串口" Click="SwitchPortButton_Click"></Button>
-                    </StackPanel>
-                    <Separator Grid.Column="1" BorderThickness="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
-                    <Grid x:Name="RowDataGrid" Grid.Column="2" Margin="10">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"></RowDefinition>
-                            <RowDefinition Height="*"></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <StackPanel x:Name="ReceivedRawDataPanel" Grid.Row="0"
-                                    VerticalAlignment="Stretch" Margin="0, 0, 0, 10">
-                            <TextBlock x:Name="ReceivedRawDataTitleBlock" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
-                            <RichTextBox x:Name="ReceivedRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" 
-                                         IsReadOnly="True"
-                                         ></RichTextBox>
-                        </StackPanel>
-                        <StackPanel x:Name="SentRawDataPanel" Grid.Row="1"
-                                    VerticalAlignment="Stretch">
-                            <TextBlock x:Name="SentRawDataTitleBlock" Text="原始发送数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10" ></TextBlock>
-                            <RichTextBox x:Name="SentRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True"></RichTextBox>
-                        </StackPanel>
-                    </Grid>
-                </Grid>
+                <Frame Source="SerialPortControlPage.xaml"></Frame>
             </TabItem>
             <TabItem x:Name="SensorConfigureTab">
                 <TabItem.Header>
                     <TextBlock Text="传感器设置" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
                 </TabItem.Header>
-                <StackPanel Margin="10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="auto"></ColumnDefinition>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <StackPanel Orientation="Horizontal">
-                            <StackPanel x:Name="SamplingRatePanel" Orientation="Horizontal" Margin="0, 0, 10, 10">
-                                    <TextBlock Text="采样频率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                <ComboBox x:Name="SamplingRateBox" VerticalAlignment="Center">
-                                    <ComboBoxItem Content="1Hz" Tag="1Hz"></ComboBoxItem>
-                                    <ComboBoxItem Content="5Hz" Tag="5Hz"></ComboBoxItem>
-                                    <ComboBoxItem Content="10Hz" Tag="10Hz"></ComboBoxItem>
-                                    <ComboBoxItem Content="20Hz" Tag="20Hz"></ComboBoxItem>
-                                    <ComboBoxItem Content="50Hz" Tag="50Hz"></ComboBoxItem>
-                                    <ComboBoxItem Content="100Hz" Tag="100Hz"></ComboBoxItem>
-                                </ComboBox>
-                            </StackPanel>
-                            <StackPanel x:Name="SamplingThresholdPanel" Orientation="Horizontal" Margin="0, 0, 0, 10">
-                                    <TextBlock Text="采样阈值：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                <Slider x:Name="SamplingThresholdSlider" Maximum="100" Minimum="0"  Margin="0, 0, 10, 0" Width="150" VerticalAlignment="Center" ValueChanged="SamplingThresholdSlider_ValueChanged"></Slider>
-                                <TextBlock x:Name="SamplingThresholdValueBlock" Text="0%" VerticalAlignment="Center"></TextBlock>
-                            </StackPanel>
-                            </StackPanel>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition></RowDefinition>
-                                    <RowDefinition></RowDefinition>
-                                    <RowDefinition></RowDefinition>
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0" Margin="0, 0, 0, 10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                        <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="当前时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <DatePicker x:Name="CurrentDatePicker" Grid.Column="1" Margin="0, 0, 30, 0"></DatePicker>
-                                    <TextBlock Grid.Column="2" Text="预约时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center" ></TextBlock>
-                                    <DatePicker x:Name="SessionPicker" Grid.Column="3" Margin="0, 0, 30, 0"></DatePicker>
-                                </Grid>
-                                <Grid Grid.Row="1" Margin="0, 0, 0, 10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                        <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="地址：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AddressBox" Grid.Column="1" VerticalAlignment="Center" Margin="0, 0, 30, 0"></TextBox>
-                                    <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" Grid.Column="2" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="SensorBaudRatebox" Grid.Column="3" VerticalAlignment="Center" Margin="0, 0, 30, 0"></TextBox>
-                                </Grid>
-                                <Grid Grid.Row="2" Margin="0, 0, 0, 10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                        <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                        <ColumnDefinition></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="校验位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <ComboBox x:Name="SensorParityBox" Grid.Column="1" Margin="0, 0, 30, 0" VerticalAlignment="Center"></ComboBox>
-                                    <TextBlock Text="停止位：" Grid.Column="2" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <ComboBox x:Name="SensorStopBitBox" Grid.Column="3" Margin="0, 0, 30, 0"></ComboBox>
-                                </Grid>
-                            </Grid>
-                        </StackPanel>
-                        <Separator Grid.Column="1" BorderThickness="1" Width="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
-                        <StackPanel Grid.Column="2">
-                            <StackPanel x:Name="AccelerometerRangePanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
-                                <TextBlock Text="加速度量程：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                <ComboBox x:Name="AccelerometerRangeBox" SelectedIndex="0" Width="60">
-                                    <ComboBoxItem Content="2g"></ComboBoxItem>
-                                    <ComboBoxItem Content="4g"></ComboBoxItem>
-                                    <ComboBoxItem Content="8g"></ComboBoxItem>
-                                    <ComboBoxItem Content="16g"></ComboBoxItem>
-                                </ComboBox>
-                            </StackPanel>
-                            <StackPanel x:Name="AccelerometerZeroPointPanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
-                                <TextBlock Text="加速度零点：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                                    <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AccelerometerZeroPointXBox" Width="30"></TextBox>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                                    <TextBlock Text="Y：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AccelerometerZeroPointYBox" Width="30"></TextBox>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,  0, 10, 0">
-                                    <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AccelerometerZeroPointZBox" Width="30"></TextBox>
-                                </StackPanel>
-                            </StackPanel>
-                            <StackPanel x:Name="AccelerometerSensibilityPanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
-                                <TextBlock Text="加速度灵敏度：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                                    <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AccelerometerSensibilityXBox" Width="30"></TextBox>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                                    <TextBlock Text="Y：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AccelerometerSensibilityYBox" Width="30"></TextBox>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,  0, 10, 0">
-                                    <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                                    <TextBox x:Name="AccelerometerSensibilityZBox" Width="30"></TextBox>
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="StartButton" Grid.Column="0" Content="确定" Margin="0, 0, 5, 5" ></Button>
-                        <Button x:Name="CalibrateButton" Grid.Column="1" Content="校准X、Y、Z轴" Margin="5, 0, 0, 5" ></Button>
-                    </Grid>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <Button x:Name="QueryButton" Grid.Column="0" Content="查询各项参数" Margin="0, 5, 5, 0" ></Button>
-                        <Button x:Name="RestoreButton" Grid.Column="1" Content="恢复出厂设置" Margin="5, 5, 0, 0"></Button>
-                    </Grid>
-                </StackPanel>
+                <Frame Source="SensorConfigurePage.xaml"></Frame>
             </TabItem>
             <TabItem x:Name="GraphicTab">
                 <TabItem.Header>
                     <TextBlock Text="图表" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
                 </TabItem.Header>
-                <Grid x:Name="GraphicGrid" Margin="10">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="GraphicImageColumn" Width="3*"></ColumnDefinition>
-                        <ColumnDefinition x:Name="SeparateColumn" Width="auto"></ColumnDefinition>
-                        <ColumnDefinition x:Name="GraphicDataColumn" Width="*"></ColumnDefinition>
-                    </Grid.ColumnDefinitions>
-                    <Grid x:Name="GraphicImageGrid" Grid.Column="0">
-
-                    </Grid>
-                    <Separator Grid.Column="1" BorderThickness="1" Width="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
-                    <Grid x:Name="GraphicDataGrid" Grid.Column="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition></RowDefinition>
-                            <RowDefinition></RowDefinition>
-                        </Grid.RowDefinitions>
-                        <StackPanel Grid.Row="0">
-                            <TextBlock Text="数据" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
-                            <ListBox x:Name="DataListBox"></ListBox>
-                        </StackPanel>
-                        <StackPanel Grid.Row="1" Margin="0, 10, 0, 0">
-                            <TextBlock Text="碰撞时间" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
-                            <ListBox x:Name="ImpactListBox"></ListBox>
-                        </StackPanel>
-                    </Grid>
-                </Grid>
+                <Frame Source="GraphicGridPage.xaml"></Frame>
             </TabItem>
         </TabControl>
         <Grid  Background="LightGray" Grid.Row="1" VerticalAlignment="Bottom">
             <Grid x:Name="StateBar" Margin="10, 5,  10, 5">
-                <TextBlock x:Name="StateBox" VerticalAlignment="Center"></TextBlock>
+                <TextBlock x:Name="StateBlock" VerticalAlignment="Center"></TextBlock>
             </Grid>
         </Grid>
     </Grid>
