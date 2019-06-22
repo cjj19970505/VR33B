@@ -6,8 +6,15 @@
       xmlns:local="clr-namespace:VR33B.UI"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="SerialPortControlPage">
-
+      Title="SerialPortControlPage"
+      Loaded="Page_Loaded"
+      Unloaded="Page_Unloaded">
+    <Page.DataContext>
+        <local:SerialPortViewModel x:Name="ViewModel"/>
+    </Page.DataContext>
+    <Page.Resources>
+        <local:SerialIsOpenToButtonContentConverter x:Key="SerialIsOpenToButtonContentConverter"/>
+    </Page.Resources>
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -17,8 +24,7 @@
         <StackPanel x:Name="SerialConfigurePanel" Grid.Column="0" VerticalAlignment="Stretch">
             <StackPanel x:Name="SerialNoPanel" Orientation="Horizontal">
                 <TextBlock Text="串口号：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                <ComboBox x:Name="SerialNoBox" Width="60" >
-                </ComboBox>
+                <ComboBox x:Name="SerialNoBox" Width="60" />
             </StackPanel>
             <StackPanel x:Name="BaudRatePanel" Orientation="Horizontal">
                 <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
@@ -26,17 +32,17 @@
             </StackPanel>
             <StackPanel x:Name="DataBitPanel" Orientation="Horizontal">
                 <TextBlock Text="数据位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                <ComboBox x:Name="DataBitBox" Width="60"></ComboBox>
+                <ComboBox x:Name="DataBitBox" Width="60" SelectedItem="{Binding Path=DataBits}"/>
             </StackPanel>
             <StackPanel x:Name="StopBitPanel" Orientation="Horizontal">
                 <TextBlock Text="停止位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                <ComboBox x:Name="StopBitBox" Width="60"></ComboBox>
+                <ComboBox x:Name="StopBitBox" Width="60" SelectedItem="{Binding Path=StopBits}"/>
             </StackPanel>
             <StackPanel x:Name="ParityBitPanel" Orientation="Horizontal" Margin="0, 0, 0, 10">
                 <TextBlock Text="校验位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                <ComboBox x:Name="ParityBitBox" Width="60"></ComboBox>
+                <ComboBox x:Name="ParityBitBox" Width="60" SelectedItem="{Binding Path=Parity}"/>
             </StackPanel>
-            <Button x:Name="SwitchPortButton" VerticalAlignment="Bottom" Content="打开/关闭串口" Click="SwitchPortButton_Click"></Button>
+            <Button x:Name="SwitchPortButton" VerticalAlignment="Bottom" Content="{Binding Path=IsOpen, Converter={StaticResource ResourceKey=SerialIsOpenToButtonContentConverter}, Mode=OneWay}" Click="SwitchPortButton_Click"></Button>
         </StackPanel>
         <Separator Grid.Column="1" BorderThickness="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
         <Grid x:Name="RowDataGrid" Grid.Column="2" Margin="10">

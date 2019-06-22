@@ -45,7 +45,7 @@ namespace VR33B
         public event EventHandler<VR33BReceiveData> OnReceived;
         public event EventHandler<VR33BSendData> OnSerialPortSent;
 
-        public event EventHandler OnVR33BSampleStarted;
+        public event EventHandler<VR33BSampleProcess> OnVR33BSampleStarted;
         public event EventHandler<VR33BSampleValue> OnVR33BSampleValueReceived;
         public event EventHandler OnVR33BSampleEnded;
 
@@ -57,6 +57,7 @@ namespace VR33B
         /// </summary>
         public bool Sampling { get; private set; }
         private long _CurrentSampleIndex = 0;
+        public VR33BSampleProcess _CurrentSampleProcess;
 
         /// <summary>
         /// PC中保存的最新的设置（可能和实际有出入，但是一旦获取到新的设置后会自动填充进这个设置里，（除非前端作死自己去使用SendCommand函数啥的）
@@ -282,7 +283,12 @@ namespace VR33B
                     return true;
                 }
                 Sampling = true;
-                OnVR33BSampleStarted?.Invoke(this, null);
+                _CurrentSampleProcess = new VR33BSampleProcess
+                {
+                    Name = "Sample",
+                    Guid = Guid.NewGuid()
+                };
+                OnVR33BSampleStarted?.Invoke(this, _CurrentSampleProcess);
                 return true;
             }
 
@@ -294,8 +300,13 @@ namespace VR33B
             if (response.Success)
             {
                 Sampling = true;
-                OnVR33BSampleStarted?.Invoke(this, null);
-                OnVR33BSampleValueReceived?.Invoke(this, VR33BSampleValue.FromVR33BReceiveData(response.Response, LatestSetting, 0));
+                _CurrentSampleProcess = new VR33BSampleProcess
+                {
+                    Name = "Sample",
+                    Guid = Guid.NewGuid()
+                };
+                OnVR33BSampleStarted?.Invoke(this, _CurrentSampleProcess);
+                OnVR33BSampleValueReceived?.Invoke(this, VR33BSampleValue.FromVR33BReceiveData(response.Response, LatestSetting, 0, _CurrentSampleProcess));
                 _CurrentSampleIndex = 1;
                 this.OnReceived += VR33BTerminal_OnReceived;
                 return true;
@@ -336,7 +347,7 @@ namespace VR33B
                 if(e.ReadOrWrite == VR33BMessageType.Read && e.Data.Length == 10)
                 {
 
-                    VR33BSampleValue sampleValue = VR33BSampleValue.FromVR33BReceiveData(e, LatestSetting, _CurrentSampleIndex);
+                    VR33BSampleValue sampleValue = VR33BSampleValue.FromVR33BReceiveData(e, LatestSetting, _CurrentSampleIndex, _CurrentSampleProcess);
                     _CurrentSampleIndex++;
                     OnVR33BSampleValueReceived?.Invoke(this, sampleValue);
                 }
@@ -391,7 +402,7 @@ namespace VR33B
                 DateTime _LatestSampleDateTime = DateTime.Now;
                 long sampleIndex = 0;
 
-                OnVR33BSampleStarted += (object sender, EventArgs e) => { sampleIndex = 0; };
+                OnVR33BSampleStarted += (object sender, VR33BSampleProcess e) => { sampleIndex = 0; };
                 while (true)
                 {
                     if (Sampling)

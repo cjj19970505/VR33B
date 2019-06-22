@@ -13,6 +13,8 @@ namespace VR33B.Storage
 
         VR33BTerminal _VR33BTerminal;
 
+        private VR33BSampleProcess _CurrentSampleProcess;
+
         private object _BeforeStoreBufferLock;
         private List<VR33BSampleValueEntity> _BeforeStoreBuffer;
 
@@ -57,7 +59,18 @@ namespace VR33B.Storage
 
         private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
         {
-            //throw new NotImplementedException();
+            Task.Run(() =>
+            {
+                lock(_DataContextLock)
+                {
+                    lock (_InMemoryBufferLock)
+                    {
+                        _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
+                        _InMemoryBuffer.Clear();
+                    }
+                    _DataContext.SaveChanges();
+                }
+            });
         }
 
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
@@ -92,9 +105,17 @@ namespace VR33B.Storage
             //throw new NotImplementedException();
         }
 
-        private void _VR33BTerminal_OnVR33BSampleStarted(object sender, EventArgs e)
+        private void _VR33BTerminal_OnVR33BSampleStarted(object sender, VR33BSampleProcess e)
         {
-            //throw new NotImplementedException();
+            _CurrentSampleProcess = e;
+            Task.Run(() =>
+            {
+                lock (_DataContextLock)
+                {
+                    _DataContext.SampleProcessEntities.Add(VR33BSampleProcessEntity.FromStruct(_CurrentSampleProcess));
+                    _DataContext.SaveChanges();
+                }
+            });
         }
 
         public event EventHandler<VR33BSampleValue> Updated;
@@ -127,7 +148,7 @@ namespace VR33B.Storage
                     {
                         inDatabaseQueryResult.AddRange(
                             (from entity in _DataContext.SampleValueEntities
-                             where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime
+                             where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime && entity.SampleProcessGuid == _CurrentSampleProcess.Guid
                              select entity.ToStruct()).ToList()
                             );
                         inDatabaseQueryResult.Sort((value1, value2) =>
@@ -161,6 +182,7 @@ namespace VR33B.Storage
     {
         private static bool _Created = false;
         public DbSet<VR33BSampleValueEntity> SampleValueEntities { get; set; }
+        public DbSet<VR33BSampleProcessEntity> SampleProcessEntities { get; set; }
         public VR33BSqliteStorageContext()
         {
             if (!_Created)
@@ -169,12 +191,6 @@ namespace VR33B.Storage
                 Database.EnsureCreated();
             }
             //SampleValueEntities.OrderBy
-        }
-
-        public override int SaveChanges(bool acceptAllChangesOnSuccess)
-        {
-            
-            return base.SaveChanges(acceptAllChangesOnSuccess);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -189,6 +205,7 @@ namespace VR33B.Storage
         //public long Id { get; set; }
         [System.ComponentModel.DataAnnotations.Key]
         public long Id { get; set; }
+        public Guid SampleProcessGuid { get; set; }
         public long SampleIndex { get; set; }
         public DateTime SampleDateTime { get; set; }
         public UInt16 RawAccelerometerValueX { get; set; }
@@ -201,6 +218,7 @@ namespace VR33B.Storage
         {
             return new VR33BSampleValueEntity
             {
+                SampleProcessGuid = vr33bSampleValue.SampleProcessGuid,
                 SampleIndex = vr33bSampleValue.SampleIndex,
                 SampleDateTime = vr33bSampleValue.SampleDateTime,
                 RawAccelerometerValueX = vr33bSampleValue.RawAccelerometerValue.X,
@@ -220,6 +238,29 @@ namespace VR33B.Storage
                 RawAccelerometerValue = (this.RawAccelerometerValueX, this.RawAccelerometerValueY, this.RawAccelerometerValueZ),
                 RawTemperature = this.RawTemperature,
                 RawHumidity = this.RawHumidity
+            };
+        }
+    }
+    internal class VR33BSampleProcessEntity
+    {
+        public long Id { get; set; }
+        public string Name { get; set; }
+        public Guid Guid { get; set; }
+        public VR33BSampleProcess ToStruct()
+        {
+            return new VR33BSampleProcess
+            {
+                Name = this.Name,
+                Guid = this.Guid
+            };
+        }
+
+        public static VR33BSampleProcessEntity FromStruct(VR33BSampleProcess process)
+        {
+            return new VR33BSampleProcessEntity
+            {
+                Name = process.Name,
+                Guid = process.Guid
             };
         }
     }

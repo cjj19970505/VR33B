@@ -10,6 +10,7 @@ namespace VR33B
     [Serializable()]
     public struct VR33BSampleValue
     {
+        public Guid SampleProcessGuid { get; set; }
         /// <summary>
         /// 在一次采样中，采样点按顺序产生，并且按顺序赋予一个采样编号
         /// </summary>
@@ -53,7 +54,7 @@ namespace VR33B
             
         }
 
-        public static VR33BSampleValue FromVR33BReceiveData(VR33BReceiveData receiveData, VR33BSetting vr33bSetting, long index)
+        public static VR33BSampleValue FromVR33BReceiveData(VR33BReceiveData receiveData, VR33BSetting vr33bSetting, long index, VR33BSampleProcess sampleProcess)
         {
             DateTime tempBaseDateTime = new DateTime(2008, 2, 12, 10, 5, 10);
             double durationInMs = 0;
@@ -93,6 +94,7 @@ namespace VR33B
             UInt16 rawH = BitConverter.ToUInt16(hBytes, 0);
             VR33BSampleValue sampleValue = new VR33BSampleValue()
             {
+                SampleProcessGuid = sampleProcess.Guid,
                 SampleIndex = index,
                 SampleDateTime = tempBaseDateTime.Add(new TimeSpan(0, 0, 0, 0, (int)(durationInMs * index))),
                 RawAccelerometerValue = (rawX, rawY, rawZ),

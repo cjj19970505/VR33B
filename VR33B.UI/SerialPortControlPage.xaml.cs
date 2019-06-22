@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -22,6 +24,13 @@ namespace VR33B.UI
     /// </summary>
     public partial class SerialPortControlPage : Page
     {
+        public SerialPort SerialPort
+        {
+            get
+            {
+                return ViewModel.SerialPort;
+            }
+        }
         public SerialPortControlPage()
         {
             InitializeComponent();
@@ -35,13 +44,15 @@ namespace VR33B.UI
             BaudRateBox.ItemsSource = baudRates;
             BaudRateBox.SelectedItem = baudRates[0];
             DataBitBox.ItemsSource = dataBits;
-            DataBitBox.SelectedItem = dataBits[0];
+            //DataBitBox.SelectedItem = dataBits[0];
+            DataBitBox.SelectedValue = dataBits[0];
             StopBitBox.ItemsSource = Enum.GetValues(typeof(StopBits));
-            StopBitBox.SelectedItem = StopBits.One;
+            //StopBitBox.SelectedItem = StopBits.One;
             ParityBitBox.ItemsSource = Enum.GetValues(typeof(Parity));
-            ParityBitBox.SelectedItem = Parity.None;
+            //ParityBitBox.SelectedItem = Parity.None;
+            
+            
         }
-        public static SerialPort SensorSerialPort = new SerialPort();
         private ObservableCollection<string> serialPortNames;
         private ObservableCollection<int> baudRates = new ObservableCollection<int> { 9600 };
         private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
@@ -63,20 +74,15 @@ namespace VR33B.UI
         /// <param name="e"></param>
         private void SwitchPortButton_Click(object sender, RoutedEventArgs e)
         {
-            SensorSerialPort.PortName = (string)SerialNoBox.SelectedItem;
-            SensorSerialPort.BaudRate = (int)BaudRateBox.SelectedItem;
-            SensorSerialPort.DataBits = (int)DataBitBox.SelectedItem;
-            SensorSerialPort.Parity = (Parity)ParityBitBox.SelectedItem;
-            SensorSerialPort.StopBits = (StopBits)StopBitBox.SelectedItem;
             try
             {
-                if (!SensorSerialPort.IsOpen)
+                if (!SerialPort.IsOpen)
                 {
-                    SensorSerialPort.Open();
+                    ViewModel.Open();
                 }
                 else
                 {
-                    SensorSerialPort.Close();
+                    ViewModel.Close();
                 }
             }
             catch (Exception exception)
@@ -91,5 +97,177 @@ namespace VR33B.UI
         /// 当然在该页面有状态改变时触发该事件
         /// </summary>
         static public event OnStateChangedEventHandler OnStateChanged;
+
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            serialPortNames.Clear();
+            foreach (var serialPortName in SerialPort.GetPortNames())
+            {
+                serialPortNames.Add(serialPortName);
+                SerialNoBox.SelectedItem = serialPortNames[0];
+            }
+        }
+
+        private void Page_Unloaded(object sender, RoutedEventArgs e)
+        {
+
+        }
+    }
+
+    public class SerialPortViewModel:INotifyPropertyChanged
+    {
+        public SerialPort SerialPort { get; set; }
+        public string PortName
+        {
+            get
+            {
+                if(SerialPort == null)
+                {
+                    return "";
+                }
+                return SerialPort.PortName;
+            }
+            set
+            {
+                if(SerialPort == null)
+                {
+                    return;
+                }
+                SerialPort.PortName = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PortName"));
+            }
+        }
+        public int BaudRate
+        {
+            get
+            {
+                if(SerialPort == null)
+                {
+                    return 0;
+                }
+                return SerialPort.BaudRate;
+            }
+            set
+            {
+                if(SerialPort == null)
+                {
+                    return;
+                }
+                SerialPort.BaudRate = SerialPort.BaudRate;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
+            }
+        }
+        public int DataBits
+        {
+            get
+            {
+                if(SerialPort == null)
+                {
+                    return 0;
+                }
+                return SerialPort.DataBits;
+            }
+            set
+            {
+                if(SerialPort == null)
+                {
+                    return;
+                }
+                SerialPort.DataBits = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
+            }
+        }
+        public StopBits StopBits
+        {
+            get
+            {
+                if (SerialPort == null)
+                {
+                    return StopBits.None;
+                }
+                return SerialPort.StopBits;
+            }
+            set
+            {
+                if(SerialPort == null)
+                {
+                    return;
+                }
+
+                SerialPort.StopBits = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StopBits"));
+            }
+        }
+        public Parity Parity
+        {
+            get
+            {
+                if(SerialPort == null)
+                {
+                    return Parity.None;
+                }
+                return SerialPort.Parity;
+            }
+            set
+            {
+                if(SerialPort == null)
+                {
+                    return;
+                }
+                SerialPort.Parity = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
+            }
+        }
+
+        public bool IsOpen
+        {
+            get
+            {
+                if(SerialPort == null)
+                {
+                    return false;
+                }
+                return SerialPort.IsOpen;
+            }
+        }
+
+        public void Open()
+        {
+            SerialPort.Open();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOpen"));
+        }
+        public void Close()
+        {
+            SerialPort.Close();
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOpen"));
+        }
+
+        public SerialPortViewModel()
+        {
+
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
+
+    public class SerialIsOpenToButtonContentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool isOpen = (bool)value;
+            if(isOpen)
+            {
+                return "关闭串口";
+            }
+            else
+            {
+                return "打开串口";
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

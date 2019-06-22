@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using System.IO.Ports;
+using VR33B.Storage;
 
 namespace VR33B.UI
 {
@@ -22,10 +23,26 @@ namespace VR33B.UI
     /// </summary>
     public partial class MainWindow : Window
     {
+        public VR33BTerminal VR33BTerminal { get; set; }
+        public SensorConfigurePage SensorConfigurePage { get; private set; }
+        public SerialPortControlPage SerialPortControlPage { get; private set; }
         public MainWindow()
         {
             InitializeComponent();
             SerialPortControlPage.OnStateChanged += SerialPortControlPage_OnStateChanged;
+
+            VR33BTerminal = new VR33BTerminal(new VR33BSqliteStorage(), false);
+            (SensorConfigureTab.Content as Frame).ContentRendered += SensorConfigureTabFrame_ContentRendered;
+        }
+
+        private void SensorConfigureTabFrame_ContentRendered(object sender, EventArgs e)
+        {
+            SensorConfigurePage = (SensorConfigureTab.Content as Frame).Content as SensorConfigurePage;
+            SensorConfigurePage.DataContext = VR33BTerminal;
+
+            SerialPortControlPage = (SerialConfigureTab.Content as Frame).Content as SerialPortControlPage;
+            SerialPortControlPage.ViewModel.SerialPort = VR33BTerminal.SerialPort;
+
         }
 
         private void SerialPortControlPage_OnStateChanged(string stateMessage)

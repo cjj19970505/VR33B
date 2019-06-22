@@ -91,7 +91,7 @@ namespace VR33B.Storage
 
         }
 
-        private void _VR33BTerminal_OnVR33BSampleStarted(object sender, EventArgs e)
+        private void _VR33BTerminal_OnVR33BSampleStarted(object sender, VR33BSampleProcess e)
         {
             lock(_SampleValuesLock)
             {

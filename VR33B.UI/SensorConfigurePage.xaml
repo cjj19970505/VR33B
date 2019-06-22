@@ -34,7 +34,7 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="采样频率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox Grid.Column="1" x:Name="SamplingRateBox" VerticalAlignment="Center" SelectedIndex="0" Margin="0, 0,  10, 0">
+                            <ComboBox Grid.Column="1" x:Name="SamplingRateBox" VerticalAlignment="Center" SelectedIndex="0" Margin="0, 0,  10, 0" SelectionChanged="SamplingRateBox_SelectionChanged">
                                 <ComboBoxItem Content="1Hz" Tag="1Hz"></ComboBoxItem>
                                 <ComboBoxItem Content="5Hz" Tag="5Hz"></ComboBoxItem>
                                 <ComboBoxItem Content="10Hz" Tag="10Hz"></ComboBoxItem>
@@ -84,7 +84,7 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="地址：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AddressBox" Grid.Column="1" VerticalAlignment="Center" Margin="0, 0, 10, 0"></TextBox>
+                            <TextBox x:Name="AddressBox" Grid.Column="1" VerticalAlignment="Center" Margin="0, 0, 10, 0"/>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="AddressBoxProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
