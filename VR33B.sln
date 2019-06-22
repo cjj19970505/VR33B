@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VR33B.LineGraphicTest", "VR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VR33B.LineGraphic", "VR33B.LineGraphic\VR33B.LineGraphic.csproj", "{FB435385-9E1D-4CC0-92CF-9E23552F3924}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VR33B.Storage", "VR33B.Storage\VR33B.Storage.csproj", "{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,14 @@ Global
 		{FB435385-9E1D-4CC0-92CF-9E23552F3924}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FB435385-9E1D-4CC0-92CF-9E23552F3924}.Release|x64.ActiveCfg = Release|x64
 		{FB435385-9E1D-4CC0-92CF-9E23552F3924}.Release|x64.Build.0 = Release|x64
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Debug|x64.Build.0 = Debug|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Release|x64.ActiveCfg = Release|Any CPU
+		{A52AE68E-2128-4DD8-9EC6-D61BE9C78DFD}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

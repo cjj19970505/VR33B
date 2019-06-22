@@ -49,7 +49,7 @@ namespace VR33B
         public event EventHandler<VR33BSampleValue> OnVR33BSampleValueReceived;
         public event EventHandler OnVR33BSampleEnded;
 
-        public VR33BSampleDataStorage VR33BSampleDataStorage { get; }
+        public IVR33BStorage VR33BSampleDataStorage { get; }
 
         public bool UseFakeSampleValueGenerator { get; }
         /// <summary>
@@ -63,7 +63,7 @@ namespace VR33B
         /// </summary>
         public VR33BSetting LatestSetting { get; internal set; }
 
-        public VR33BTerminal(bool useFakeSampleValueGenerator = false)
+        public VR33BTerminal(IVR33BStorage storage, bool useFakeSampleValueGenerator = false)
         {
             LatestSetting = new VR33BSetting();
 
@@ -75,7 +75,7 @@ namespace VR33B
             _CommandSessionQueueLock = new object();
             _CommandSessionQueue = new Queue<CommandSession>();
             _SendCommandToSerialPortFromQueueTask();
-            SerialPort = new SerialPort("COM8");
+            SerialPort = new SerialPort("COM3");
 
             SerialPort.DataReceived += SerialPort_DataReceived;
             SerialPort.BaudRate = 115200;
@@ -92,8 +92,10 @@ namespace VR33B
             {
                 _FakeDataGenerateTask();
             }
+            storage.VR33BTerminal = this;
+            VR33BSampleDataStorage = storage;
 
-            VR33BSampleDataStorage = new VR33BSampleDataStorage(this);
+            //VR33BSampleDataStorage = new VR33BSampleDataStorage(this);
         }
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)

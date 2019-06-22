@@ -16,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using VR33B.Storage;
 
 namespace VR33B.LineGraphic
 {
@@ -57,7 +58,7 @@ namespace VR33B.LineGraphic
             SampleDataListView.ItemsSource = TestTable;
             //TestTable.CollectionChanged += TestTable_CollectionChanged;
 
-            VR33BTerminal = new VR33BTerminal(true);
+            VR33BTerminal = new VR33BTerminal(new VR33BSampleDataStorage(), false);
             //VR33BTerminal.OnReceived += VR33BTerminal_OnReceived;
 
             VR33BTerminal.OnSerialPortSent += VR33BTerminal_OnSerialPortSent;

@@ -224,6 +224,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VR33B.Storage\VR33B.Storage.csproj">
+      <Project>{a52ae68e-2128-4dd8-9ec6-d61be9c78dfd}</Project>
+      <Name>VR33B.Storage</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VR33B\VR33B.csproj">
       <Project>{b01e6711-0a33-44e0-8274-51e6725f4a0b}</Project>
       <Name>VR33B</Name>

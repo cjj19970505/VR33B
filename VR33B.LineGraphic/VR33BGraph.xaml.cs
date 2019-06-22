@@ -190,7 +190,7 @@ namespace VR33B.LineGraphic
             {
                 DateTime beforeLookup = DateTime.Now;
 
-                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRange(newLoadStartDateTime, newLoadEndDateTime);
+                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRangeAsync(newLoadStartDateTime, newLoadEndDateTime);
                 _LoadedSampleValues = plotData.ToArray();
                 var plotCount = plotData.Count;
                 if (TrackingModeOn)

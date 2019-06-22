@@ -6,14 +6,14 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace VR33B
+namespace VR33B.Storage
 {
     /// <summary>
     /// this uses Sqlite to store the sample data and distribute them to wherever they are needed.
     /// It stores all the data into sqlite database and store only  a small amount of data in local memory
     /// the SampleProcessInfo Table stores every sample process info in the database, just like header of a file
     /// </summary>
-    public class VR33BSampleDataStorage
+    public class VR33BSampleDataStorage:IVR33BStorage
     {
         private VR33BTerminal _VR33BTerminal;
         private SQLiteConnection _DBConnection;
@@ -51,12 +51,11 @@ namespace VR33B
             }
         }
 
-        public VR33BSampleDataStorage(VR33BTerminal vr33bTerminal)
+        public VR33BSampleDataStorage()
         {
             _SampleValues = new List<VR33BSampleValue>();
             _OutOfOrderSampleValueBuffer = new List<VR33BSampleValue>();
             _SampleValuesLock = new object();
-            VR33BTerminal = vr33bTerminal;
 
             _BeforeStoreBuffer = new List<VR33BSampleValue>();
             _BeforeStoreBufferLock = new object();
@@ -101,7 +100,7 @@ namespace VR33B
             }
         }
 
-        public Task<List<VR33BSampleValue>> GetFromDateTimeRange(DateTime startDateTime, DateTime endDateTime)
+        public Task<List<VR33BSampleValue>> GetFromDateTimeRangeAsync(DateTime startDateTime, DateTime endDateTime)
         {
             return Task.Run(() =>
             {

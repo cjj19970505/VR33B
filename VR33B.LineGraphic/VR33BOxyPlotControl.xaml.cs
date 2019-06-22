@@ -153,7 +153,7 @@ namespace VR33B.LineGraphic
             _LoadedRangeTimeSpan = (TimeSpanAxis.ToTimeSpan(loadedLeft), TimeSpanAxis.ToTimeSpan(loadedRight));
             return Task.Run(async () =>
             {
-                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRange(_FirstSampleDateTime.Add( TimeSpanAxis.ToTimeSpan(loadedLeft)), _FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(loadedRight)));
+                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRangeAsync(_FirstSampleDateTime.Add( TimeSpanAxis.ToTimeSpan(loadedLeft)), _FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(loadedRight)));
                 
                 var plotCount = plotData.Count;
                 if(plotCount == 0)
