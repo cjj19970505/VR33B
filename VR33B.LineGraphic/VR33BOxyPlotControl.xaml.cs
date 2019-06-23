@@ -250,6 +250,8 @@ namespace VR33B.LineGraphic
 
             TrackingModeOn = true;
         }
+
+
         DateTime _LatestBeginPlotDateTime = DateTime.Now;
         TimeSpan _LatestPlotTimeSpan = new TimeSpan(0);
         private void OxyPlotModel_Updated(object sender, EventArgs e)

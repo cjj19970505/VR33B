@@ -246,6 +246,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\VR33B.LineGraphic\VR33B.LineGraphic.csproj">
+      <Project>{fb435385-9e1d-4cc0-92cf-9e23552f3924}</Project>
+      <Name>VR33B.LineGraphic</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VR33B.Storage\VR33B.Storage.csproj">
       <Project>{a52ae68e-2128-4dd8-9ec6-d61be9c78dfd}</Project>
       <Name>VR33B.Storage</Name>

@@ -26,6 +26,7 @@ namespace VR33B.UI
         public VR33BTerminal VR33BTerminal { get; set; }
         public SensorConfigurePage SensorConfigurePage { get; private set; }
         public SerialPortControlPage SerialPortControlPage { get; private set; }
+        public GraphicGridPage GraphicGridPage { get; private set; }
         public MainWindow()
         {
             InitializeComponent();
@@ -37,6 +38,9 @@ namespace VR33B.UI
 
         private void SensorConfigureTabFrame_ContentRendered(object sender, EventArgs e)
         {
+            GraphicGridPage = (GraphicTab.Content as Frame).Content as GraphicGridPage;
+            GraphicGridPage.VR33BTerminal = VR33BTerminal;
+
             SensorConfigurePage = (SensorConfigureTab.Content as Frame).Content as SensorConfigurePage;
             SensorConfigurePage.SettingViewModel.VR33BTerminal = VR33BTerminal;
 

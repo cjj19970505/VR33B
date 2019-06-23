@@ -76,6 +76,19 @@ namespace VR33B.UI
             var response = await SettingViewModel.VR33BTerminal.SetAccelerometerRange(targetAccRange);
             await Dispatcher.InvokeAsync(() => { AccelerometerRangeProgressRing.Visibility = Visibility.Collapsed; });
         }
+
+        private async void SampleButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(!SettingViewModel.VR33BTerminal.Sampling)
+            {
+                await SettingViewModel.VR33BTerminal.StartSampleAsync();
+            }
+            else
+            {
+                await SettingViewModel.VR33BTerminal.StopSampleAsync();
+            }
+            
+        }
     }
 
     public class VR33BSettingViewModel : INotifyPropertyChanged
@@ -99,6 +112,8 @@ namespace VR33B.UI
                 _VR33BTerminal.LatestSetting.OnDeviceAddressChanged += LatestSetting_OnDeviceAddressChanged;
                 _VR33BTerminal.LatestSetting.OnSampleFrequencyChanged += LatestSetting_OnSampleFrequencyChanged;
                 _VR33BTerminal.LatestSetting.OnAccelerometerRangeChanged += LatestSetting_OnAccelerometerRangeChanged;
+                _VR33BTerminal.OnVR33BSampleStarted += _VR33BTerminal_OnVR33BSampleStarted;
+                _VR33BTerminal.OnVR33BSampleEnded += _VR33BTerminal_OnVR33BSampleEnded;
             }
         }
 
@@ -176,6 +191,18 @@ namespace VR33B.UI
                 return VR33BTerminal.LatestSetting.AccelerometerRange;
             }
         }
+
+        public bool Sampling
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return false;
+                }
+                return VR33BTerminal.Sampling;
+            }
+        }
         private void LatestSetting_OnDeviceAddressChanged(object sender, byte e)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DeviceAddress"));
@@ -206,6 +233,17 @@ namespace VR33B.UI
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConnectionState"));
         }
+        private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Sampling"));
+        }
+
+        private void _VR33BTerminal_OnVR33BSampleStarted(object sender, VR33BSampleProcess e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Sampling"));
+        }
+
+        
     }
 
     internal class ConnectionStateToButtonContentConverter : IValueConverter
@@ -259,6 +297,27 @@ namespace VR33B.UI
         {
             var deviceAddress = (byte)value;
             return value.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class SamplingToButtonContentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool sampling = (bool)value;
+            if(sampling)
+            {
+                return "采样中";
+            }
+            else
+            {
+                return "开始采样";
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

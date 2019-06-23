@@ -104,7 +104,6 @@ namespace VR33B
             }
             storage.VR33BTerminal = this;
             VR33BSampleDataStorage = storage;
-
             //VR33BSampleDataStorage = new VR33BSampleDataStorage(this);
         }
 
