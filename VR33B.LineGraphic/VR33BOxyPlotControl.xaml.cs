@@ -94,6 +94,8 @@ namespace VR33B.LineGraphic
 
         private (TimeSpan Left, TimeSpan Right) _LoadedRangeTimeSpan;
 
+        private bool _Visible = false;
+
         public TimeSpan _UpdateInterval
         {
             get
@@ -129,12 +131,24 @@ namespace VR33B.LineGraphic
                 Inited = true;
                 _FirstSampleDateTime = e.SampleDateTime;
             }
+            if(!_Visible)
+            {
+                return;
+            }
             if (DateTime.Now - _LastPlotDateTime >= _UpdateInterval && !_TrackingModeReploting)
             {
                 _LastPlotDateTime = DateTime.Now;
-                _TrackingModeReploting = true;
-                await _ReplotAsync();
-                _TrackingModeReploting = false;
+                if (!TrackingModeOn && e.SampleDateTime > _FirstSampleDateTime.Add(_LoadedRangeTimeSpan.Right))
+                {
+
+                }
+                else
+                {
+                    _TrackingModeReploting = true;
+                    await _ReplotAsync();
+                    _TrackingModeReploting = false;
+                }
+                
             }
         }
         private Guid _LatestReplotGuid;
@@ -210,6 +224,7 @@ namespace VR33B.LineGraphic
         {
             InitializeComponent();
             DataContext = this;
+            _Visible = Visibility == Visibility.Visible;
             OxyPlotModel = new PlotModel();
             OxyPlotModel.Title = "Data";
             OxyPlotView.Model = OxyPlotModel;
@@ -248,9 +263,22 @@ namespace VR33B.LineGraphic
             OxyPlotModel.Updating += OxyPlotModel_Updating;
             OxyPlotModel.Updated += OxyPlotModel_Updated;
 
+            IsVisibleChanged += VR33BOxyPlotControl_IsVisibleChanged;
             TrackingModeOn = true;
         }
 
+        private void VR33BOxyPlotControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _Visible = (bool)e.NewValue;
+            if(!_Visible)
+            {
+                OxyPlotView.IsEnabled = false;
+            }
+            else
+            {
+                OxyPlotView.IsEnabled = true;
+            }
+        }
 
         DateTime _LatestBeginPlotDateTime = DateTime.Now;
         TimeSpan _LatestPlotTimeSpan = new TimeSpan(0);

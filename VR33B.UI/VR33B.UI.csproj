@@ -193,6 +193,9 @@
     <Compile Include="SerialPortControlPage.xaml.cs">
       <DependentUpon>SerialPortControlPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="VR33BSampleListControl.xaml.cs">
+      <DependentUpon>VR33BSampleListControl.xaml</DependentUpon>
+    </Compile>
     <Page Include="GraphicGridPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -214,6 +217,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SerialPortControlPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="VR33BSampleListControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

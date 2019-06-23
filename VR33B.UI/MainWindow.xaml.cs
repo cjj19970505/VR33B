@@ -23,16 +23,25 @@ namespace VR33B.UI
     /// </summary>
     public partial class MainWindow : Window
     {
-        public VR33BTerminal VR33BTerminal { get; set; }
+        private static VR33BTerminal _VR33BTerminal;
+        public VR33BTerminal VR33BTerminal
+        {
+            get
+            {
+                if(_VR33BTerminal == null)
+                {
+                    _VR33BTerminal = new VR33BTerminal(new VR33BSqliteStorage(), false);
+                }
+                return _VR33BTerminal;
+            }
+        }
         public SensorConfigurePage SensorConfigurePage { get; private set; }
         public SerialPortControlPage SerialPortControlPage { get; private set; }
         public GraphicGridPage GraphicGridPage { get; private set; }
         public MainWindow()
         {
             InitializeComponent();
-            SerialPortControlPage.OnStateChanged += SerialPortControlPage_OnStateChanged;
-
-            VR33BTerminal = new VR33BTerminal(new VR33BSqliteStorage(), false);
+            
             (SensorConfigureTab.Content as Frame).ContentRendered += SensorConfigureTabFrame_ContentRendered;
         }
 
@@ -60,6 +69,16 @@ namespace VR33B.UI
             SerialPort sp = (SerialPort)sender;
             string indata = sp.ReadExisting();
             //ReceivedRawDataBox.AppendText(indata);
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            SerialPortControlPage.OnStateChanged += SerialPortControlPage_OnStateChanged;
+        }
+
+        private void Window_Unloaded(object sender, RoutedEventArgs e)
+        {
+            SerialPortControlPage.OnStateChanged -= SerialPortControlPage_OnStateChanged;
         }
     }
 }

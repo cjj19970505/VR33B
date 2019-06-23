@@ -205,5 +205,15 @@ namespace VR33B.LineGraphic
             var selectedItem = (VR33BSampleFrequence)SetSampleFrequencyComboBox.SelectedItem;
             var response = await VR33BTerminal.SetSampleFrequencyAsync(selectedItem);
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Window_Unloaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

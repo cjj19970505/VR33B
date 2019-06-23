@@ -18,22 +18,11 @@
             <ColumnDefinition x:Name="GraphicDataColumn" Width="auto"/>
         </Grid.ColumnDefinitions>
         <Grid x:Name="GraphicImageGrid" Grid.Column="0">
-            <linegraphic:VR33BOxyPlotControl x:Name="VR33BOxyPlotControl"/>
+            <linegraphic:VR33BOxyPlotControl x:Name="VR33BOxyPlotControl" Margin="5"/>
         </Grid>
         <GridSplitter x:Name="GraphicViewSplitter" Grid.Column="1" Width="5" ResizeBehavior="PreviousAndNext"></GridSplitter>
         <Grid x:Name="GraphicDataGrid" Grid.Column="2">
-            <Grid.RowDefinitions>
-                <RowDefinition></RowDefinition>
-                <RowDefinition></RowDefinition>
-            </Grid.RowDefinitions>
-            <StackPanel Grid.Row="0">
-                <TextBlock Text="数据" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
-                <ListBox x:Name="DataListBox"></ListBox>
-            </StackPanel>
-            <StackPanel Grid.Row="1" Margin="0, 10, 0, 0">
-                <TextBlock Text="碰撞时间" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
-                <ListBox x:Name="ImpactListBox"></ListBox>
-            </StackPanel>
+            <local:VR33BSampleListControl x:Name="SampleListControl" Margin="5"/>
         </Grid>
     </Grid>
 </Page>

@@ -33,17 +33,13 @@ namespace VR33B.UI
                 _VR33BTerminal = value;
                 ViewModel.VR33BTerminal = value;
                 VR33BOxyPlotControl.VR33BTerminal = _VR33BTerminal;
+                SampleListControl.VR33BTerminal = _VR33BTerminal;
             }
         }
         public GraphicGridPage()
         {
             InitializeComponent();
-            IsVisibleChanged += GraphicGridPage_IsVisibleChanged;
-        }
-
-        private void GraphicGridPage_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine(e.NewValue);
+            
         }
     }
 

@@ -27,10 +27,6 @@ namespace VR33B.UI
         public SensorConfigurePage()
         {
             InitializeComponent();
-            SensorStopBitBox.ItemsSource = Enum.GetValues(typeof(StopBits));
-            SensorStopBitBox.SelectedItem = StopBits.One;
-            SensorParityBox.ItemsSource = Enum.GetValues(typeof(Parity));
-            SensorParityBox.SelectedItem = Parity.None;
         }
         private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
 

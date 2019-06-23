@@ -197,6 +197,7 @@ namespace VR33B
                     if(ConnectionState == VR33BConnectionState.Success)
                     {
                         ConnectionState = VR33BConnectionState.Failed;
+                        SerialPort.Close();
                         OnConnectonStateChanged?.Invoke(this, ConnectionState);
                     }
                 }

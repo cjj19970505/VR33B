@@ -49,13 +49,10 @@ namespace VR33B.UI
             StopBitBox.ItemsSource = Enum.GetValues(typeof(StopBits));
             //StopBitBox.SelectedItem = StopBits.One;
             ParityBitBox.ItemsSource = Enum.GetValues(typeof(Parity));
-            //ParityBitBox.SelectedItem = Parity.None;
-            //FlowDocument flowDocument = new FlowDocument();
-            //ReceivedRawDataBox.Document = flowDocument;
-            //flowDocument.set
 
 
         }
+
         private ObservableCollection<string> serialPortNames;
         private ObservableCollection<int> baudRates = new ObservableCollection<int> { 115200 };
         private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
@@ -101,6 +98,7 @@ namespace VR33B.UI
         /// </summary>
         static public event OnStateChangedEventHandler OnStateChanged;
 
+        
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             serialPortNames.Clear();
@@ -109,14 +107,14 @@ namespace VR33B.UI
                 serialPortNames.Add(serialPortName);
                 SerialNoBox.SelectedItem = serialPortNames[0];
             }
-            ViewModel.OnReceived += ViewModel_OnReceived;
-            ViewModel.OnSerialPortSent += ViewModel_OnSerialPortSent;
+            //ViewModel.OnReceived += ViewModel_OnReceived;
+            //ViewModel.OnSerialPortSent += ViewModel_OnSerialPortSent;
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
-            ViewModel.OnReceived -= ViewModel_OnReceived;
-            ViewModel.OnSerialPortSent -= ViewModel_OnSerialPortSent;
+            //ViewModel.OnReceived -= ViewModel_OnReceived;
+            //ViewModel.OnSerialPortSent -= ViewModel_OnSerialPortSent;
         }
 
         private async void ViewModel_OnSerialPortSent(object sender, VR33BSendData e)
