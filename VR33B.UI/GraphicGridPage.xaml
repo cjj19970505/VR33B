@@ -10,14 +10,13 @@
 
     <Grid x:Name="GraphicGrid" Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="GraphicImageColumn" Width="3*"></ColumnDefinition>
+            <ColumnDefinition x:Name="GraphicImageColumn" Width="auto"></ColumnDefinition>
             <ColumnDefinition x:Name="SeparateColumn" Width="auto"></ColumnDefinition>
-            <ColumnDefinition x:Name="GraphicDataColumn" Width="*"></ColumnDefinition>
+            <ColumnDefinition x:Name="GraphicDataColumn" Width="auto"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid x:Name="GraphicImageGrid" Grid.Column="0">
-
         </Grid>
-        <Separator Grid.Column="1" BorderThickness="1" Width="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
+        <GridSplitter x:Name="GraphicViewSplitter" Grid.Column="1" Width="5"></GridSplitter>
         <Grid x:Name="GraphicDataGrid" Grid.Column="2">
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VR33B.UI"
+        xmlns:dragablz="http://dragablz.net/winfx/xaml/dragablz"
         mc:Ignorable="d"
         Title="VR33B" Height="450" Width="800">
     <Grid>
@@ -11,26 +12,29 @@
             <RowDefinition x:Name="MainRow"></RowDefinition>
             <RowDefinition x:Name="StateRow" Height="30"></RowDefinition>
         </Grid.RowDefinitions>
-        <TabControl Grid.Row="0" VerticalAlignment="Stretch">
+        <dragablz:TabablzControl Grid.Row="0" VerticalAlignment="Stretch">
+            <dragablz:TabablzControl.InterTabController>
+                <dragablz:InterTabController />
+            </dragablz:TabablzControl.InterTabController>
             <TabItem x:Name="SerialConfigureTab">
                 <TabItem.Header>
-                    <TextBlock Text="串口设置" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
+                    <TextBlock Text="串口设置" Style="{DynamicResource MaterialDesignTitleTextBlock}" Foreground="White"></TextBlock>
                 </TabItem.Header>
                 <Frame Source="SerialPortControlPage.xaml"></Frame>
             </TabItem>
             <TabItem x:Name="SensorConfigureTab">
                 <TabItem.Header>
-                    <TextBlock Text="传感器设置" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
+                    <TextBlock Text="传感器设置" Style="{DynamicResource MaterialDesignTitleTextBlock}" Foreground="White"></TextBlock>
                 </TabItem.Header>
                 <Frame Source="SensorConfigurePage.xaml"></Frame>
             </TabItem>
             <TabItem x:Name="GraphicTab">
                 <TabItem.Header>
-                    <TextBlock Text="图表" Style="{DynamicResource MaterialDesignTitleTextBlock}"></TextBlock>
+                    <TextBlock Text="图表" Style="{DynamicResource MaterialDesignTitleTextBlock}" Foreground="White"></TextBlock>
                 </TabItem.Header>
                 <Frame Source="GraphicGridPage.xaml"></Frame>
             </TabItem>
-        </TabControl>
+        </dragablz:TabablzControl>
         <Grid  Background="LightGray" Grid.Row="1" VerticalAlignment="Bottom">
             <Grid x:Name="StateBar" Margin="10, 5,  10, 5">
                 <TextBlock x:Name="StateBlock" VerticalAlignment="Center"></TextBlock>
