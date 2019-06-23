@@ -27,15 +27,11 @@ namespace VR33B.UI
         public SensorConfigurePage()
         {
             InitializeComponent();
-            SensorBaudRateBox.ItemsSource = baudRates;
-            SensorBaudRateBox.SelectedItem = baudRates[0];
             SensorStopBitBox.ItemsSource = Enum.GetValues(typeof(StopBits));
             SensorStopBitBox.SelectedItem = StopBits.One;
             SensorParityBox.ItemsSource = Enum.GetValues(typeof(Parity));
             SensorParityBox.SelectedItem = Parity.None;
         }
-
-        private ObservableCollection<int> baudRates = new ObservableCollection<int> { 9600 };
         private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
 
         private void SamplingThresholdSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -48,39 +44,15 @@ namespace VR33B.UI
             SamplingThresholdSlider.Width = SamplingThresholdColumn.ActualWidth - SamplingThresholdValueBlock.ActualWidth - 15;
         }
 
-        private VR33BSampleFrequence _ComboxItemToVR33BSampleFrequence(ComboBoxItem comboBoxItem)
-        {
-            switch(comboBoxItem.Tag)
-            {
-                case "1Hz":
-                    return VR33BSampleFrequence._1Hz;
-                case "5Hz":
-                    return VR33BSampleFrequence._5Hz;
-                case "20Hz":
-                    return VR33BSampleFrequence._20Hz;
-                case "50Hz":
-                    return VR33BSampleFrequence._50Hz;
-                case "100Hz":
-                    return VR33BSampleFrequence._100Hz;
-                case "200Hz":
-                    return VR33BSampleFrequence._200Hz;
-                default:
-                    return VR33BSampleFrequence._1Hz;
-            }
-        }
-
         private async void SamplingRateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(e.RemovedItems.Count == 0)
+            if(e.RemovedItems.Count == 0 || SamplingRateBox.SelectedValue == null || !SamplingRateBox.IsDropDownOpen)
             {
                 return;
             }
-            var removeComboBoxItem = e.RemovedItems[0] as ComboBoxItem;
-            var addedComBoxItem = e.AddedItems[0] as ComboBoxItem;
-            var removeFrequence = _ComboxItemToVR33BSampleFrequence(removeComboBoxItem);
-            var addedFrequence = _ComboxItemToVR33BSampleFrequence(addedComBoxItem);
+            VR33BSampleFrequence targetSampleFrequncy = (VR33BSampleFrequence)SamplingRateBox.SelectedValue;
             SamplingRateRing.Visibility = Visibility.Visible;
-            var response = await SettingViewModel.VR33BTerminal.SetSampleFrequencyAsync(addedFrequence);
+            var response = await SettingViewModel.VR33BTerminal.SetSampleFrequencyAsync(targetSampleFrequncy);
             await Dispatcher.InvokeAsync(() => { SamplingRateRing.Visibility = Visibility.Collapsed; });
         }
 
@@ -92,13 +64,24 @@ namespace VR33B.UI
             }
             
         }
+
+        private async void AccelerometerRangeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems.Count == 0 || !AccelerometerRangeBox.IsDropDownOpen)
+            {
+                return;
+            }
+            VR33BAccelerometerRange targetAccRange = (VR33BAccelerometerRange)AccelerometerRangeBox.SelectedValue;
+            AccelerometerRangeProgressRing.Visibility = Visibility.Visible;
+            var response = await SettingViewModel.VR33BTerminal.SetAccelerometerRange(targetAccRange);
+            await Dispatcher.InvokeAsync(() => { AccelerometerRangeProgressRing.Visibility = Visibility.Collapsed; });
+        }
     }
 
     public class VR33BSettingViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private VR33BTerminal _VR33BTerminal;
-
         public VR33BTerminal VR33BTerminal
         {
             get
@@ -107,16 +90,106 @@ namespace VR33B.UI
             }
             set
             {
-                if(_VR33BTerminal != null)
+                if (_VR33BTerminal != null)
                 {
 
                 }
                 _VR33BTerminal = value;
                 _VR33BTerminal.OnConnectonStateChanged += _VR33BTerminal_OnConnectonStateChanged;
+                _VR33BTerminal.LatestSetting.OnDeviceAddressChanged += LatestSetting_OnDeviceAddressChanged;
+                _VR33BTerminal.LatestSetting.OnSampleFrequencyChanged += LatestSetting_OnSampleFrequencyChanged;
+                _VR33BTerminal.LatestSetting.OnAccelerometerRangeChanged += LatestSetting_OnAccelerometerRangeChanged;
             }
         }
 
         
+
+        public object SampleFrequencysSource
+        {
+            get
+            {
+                return Enum.GetValues(typeof(VR33BSampleFrequence)).Cast<VR33BSampleFrequence>().Select((value) =>
+                {
+                    var description = Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute;
+                    return new { Description = description.Description, Value = value };
+                }).ToList();
+            }
+        }
+
+        public object AccelerometerRangeSource
+        {
+            get
+            {
+                return Enum.GetValues(typeof(VR33BAccelerometerRange)).Cast<VR33BAccelerometerRange>().Select((value) =>
+                {
+                    var description = Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute;
+                    return new { Description = description.Description, Value = value };
+                }).ToList();
+            }
+        }
+
+        public object BaudRateSource
+        {
+            get
+            {
+                return Enum.GetValues(typeof(VR33BSerialPortBaudRate)).Cast<VR33BSerialPortBaudRate>().Select((value) =>
+                {
+                    var description = Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute;
+                    return new { Description = description.Description, Value = value };
+                }).ToList();
+            }
+        }
+        
+
+        public byte DeviceAddress
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.DeviceAddress;
+            }
+        }
+
+        public VR33BSampleFrequence SampleFrequency
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return VR33BSampleFrequence._1Hz;
+                }
+                return VR33BTerminal.LatestSetting.SampleFrequence;
+            }
+        }
+
+        public VR33BAccelerometerRange AccelerometerRange
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return VR33BAccelerometerRange._8g;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerRange;
+            }
+        }
+        private void LatestSetting_OnDeviceAddressChanged(object sender, byte e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DeviceAddress"));
+        }
+        private void LatestSetting_OnSampleFrequencyChanged(object sender, VR33BSampleFrequence e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("SampleFrequency"));
+        }
+
+        private void LatestSetting_OnAccelerometerRangeChanged(object sender, VR33BAccelerometerRange e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerometerRange"));
+        }
+
         public VR33BConnectionState ConnectionState
         {
             get
@@ -173,6 +246,19 @@ namespace VR33B.UI
             {
                 return false;
             }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    internal class DeviceAddressToTextBoxContentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var deviceAddress = (byte)value;
+            return value.ToString();
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

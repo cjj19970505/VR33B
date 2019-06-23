@@ -193,6 +193,14 @@ namespace VR33B
                 {
                     return (true, session.Response, session);
                 }
+                else if(session.CommandState == VR33BCommandState.Failed)
+                {
+                    if(ConnectionState == VR33BConnectionState.Success)
+                    {
+                        ConnectionState = VR33BConnectionState.Failed;
+                        OnConnectonStateChanged?.Invoke(this, ConnectionState);
+                    }
+                }
                 return (false, session.Response, session);
             });
         }
@@ -369,6 +377,7 @@ namespace VR33B
             if (response.Success)
             {
                 VR33BSampleFrequence sampleFrequency = (VR33BSampleFrequence)BitConverter.ToInt16(new byte[] { response.Response.Data[1], response.Response.Data[0] }, 0);
+                LatestSetting.SampleFrequence = sampleFrequency;
                 return (VR33BReadResult.Success, sampleFrequency);
             }
             else
@@ -377,11 +386,28 @@ namespace VR33B
             }
         }
 
+        public async Task<(VR33BReadResult, VR33BAccelerometerRange)> ReadAccelerometerRangeAsync()
+        {
+            var response = await SendCommandAsync(new ReadAccelerometerRange(this));
+            if (response.Success)
+            {
+                VR33BAccelerometerRange accelerometerRange = (VR33BAccelerometerRange)response.Response.Data[0];
+                LatestSetting.AccelerometerRange = accelerometerRange;
+                return (VR33BReadResult.Success, accelerometerRange);
+            }
+            else
+            {
+                return (VR33BReadResult.Failed, VR33BAccelerometerRange._2g);
+            }
+        }
+
         public async Task<(VR33BReadResult, byte)> ReadDeviceAddressAsync()
         {
             var response = await SendCommandAsync(new ReadAddressCommand());
             if(response.Success)
             {
+                byte address = response.Response.Data[0];
+                LatestSetting.DeviceAddress = address;
                 return (VR33BReadResult.Success, response.Response.Data[0]);
             }
             else
@@ -489,16 +515,29 @@ namespace VR33B
                 }
                 else
                 {
-                    ConnectionState = VR33BConnectionState.Success;
-                    OnConnectonStateChanged?.Invoke(this, ConnectionState);
-                    return;
+                    var readAcceRangeResult = (await ReadAccelerometerRangeAsync()).Item1;
+                    var readSampleFrequencyRangeResult = (await ReadSampleFrequencyAsync()).Item1;
+                    if(readAcceRangeResult == VR33BReadResult.Success && readSampleFrequencyRangeResult == VR33BReadResult.Success)
+                    {
+                        ConnectionState = VR33BConnectionState.Success;
+                        OnConnectonStateChanged?.Invoke(this, ConnectionState);
+                        return;
+                    }
+                    else
+                    {
+                        ConnectionState = VR33BConnectionState.Failed;
+                        OnConnectonStateChanged?.Invoke(this, ConnectionState);
+                        SerialPort.Close();
+                        return;
+                    }
+                    
                 }
             }
             catch(Exception e)
             {
                 ConnectionState = VR33BConnectionState.Failed;
                 OnConnectonStateChanged?.Invoke(this, ConnectionState);
-                System.Diagnostics.Debug.WriteLine(e.Message);
+                throw e;
             }
             
         }
@@ -781,7 +820,7 @@ namespace VR33B
         {
             var sendData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Read,
                 RegisterAddress = 0x0016,
                 Data = new byte[] { 0, 0 }
@@ -825,7 +864,7 @@ namespace VR33B
         {
             var sendData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Read,
                 RegisterAddress = 0x0017,
                 Data = new byte[] { 0, 0 }
@@ -873,14 +912,14 @@ namespace VR33B
             Range = range;
             var setData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Write,
                 RegisterAddress = 0x0016,
                 Data = new byte[] { BitConverter.GetBytes((UInt16)Range)[1], BitConverter.GetBytes((UInt16)Range)[0] }
             };
             var readData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Read,
                 RegisterAddress = 0x0016,
                 Data = new byte[] { 0, 0 }
@@ -926,7 +965,7 @@ namespace VR33B
         {
             var sendData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Write,
                 RegisterAddress = 0x0012,
                 Data = new byte[] { 0, 01 }
@@ -1013,14 +1052,14 @@ namespace VR33B
             SampleFrequency = sampleFrequency;
             var setData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Write,
                 RegisterAddress = 0x0017,
                 Data = new byte[] { BitConverter.GetBytes((UInt16)SampleFrequency)[1], BitConverter.GetBytes((UInt16)SampleFrequency)[0] }
             };
             var readData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.Address,
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Read,
                 RegisterAddress = 0x0017,
                 Data = new byte[] { 0, 0 }
