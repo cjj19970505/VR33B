@@ -7,7 +7,13 @@
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="SensorConfigurePage">
-
+    <Page.DataContext>
+        <local:VR33BSettingViewModel x:Name="SettingViewModel"/>
+    </Page.DataContext>
+    <Page.Resources>
+        <local:ConnectionStateToButtonContentConverter x:Key="ConnectionStateToButtonContentConverter"/>
+        <local:ConnectionStateToEnableConverter x:Key="ConnectionStateToEnableConverter"/>
+    </Page.Resources>
     <Grid>
         <StackPanel Margin="10">
             <Grid>
@@ -34,7 +40,7 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="采样频率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox Grid.Column="1" x:Name="SamplingRateBox" VerticalAlignment="Center" SelectedIndex="0" Margin="0, 0,  10, 0" SelectionChanged="SamplingRateBox_SelectionChanged">
+                            <ComboBox Grid.Column="1" x:Name="SamplingRateBox" VerticalAlignment="Center" SelectedIndex="0" Margin="0, 0,  10, 0" SelectionChanged="SamplingRateBox_SelectionChanged" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}">
                                 <ComboBoxItem Content="1Hz" Tag="1Hz"></ComboBoxItem>
                                 <ComboBoxItem Content="5Hz" Tag="5Hz"></ComboBoxItem>
                                 <ComboBoxItem Content="10Hz" Tag="10Hz"></ComboBoxItem>
@@ -196,6 +202,7 @@
                 <Button x:Name="QueryButton" Grid.Column="0" Content="查询各项参数" Margin="0, 5, 5, 0" ></Button>
                 <Button x:Name="RestoreButton" Grid.Column="1" Content="恢复出厂设置" Margin="5, 5, 0, 0"></Button>
             </Grid>
+            <Button x:Name="ConnectButton" Content="{Binding Path=ConnectionState, Converter={StaticResource ResourceKey=ConnectionStateToButtonContentConverter}, Mode=OneWay}" Margin="0,5,0,0" Click="ConnectButton_Click"/>
         </StackPanel>
     </Grid>
 </Page>

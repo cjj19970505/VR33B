@@ -53,14 +53,12 @@
             <StackPanel x:Name="ReceivedRawDataPanel" Grid.Row="0"
                                     VerticalAlignment="Stretch" Margin="0, 0, 0, 10">
                 <TextBlock x:Name="ReceivedRawDataTitleBlock" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
-                <RichTextBox x:Name="ReceivedRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" 
-                                         IsReadOnly="True"
-                                         ></RichTextBox>
+                <TextBox x:Name="ReceivedRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
             </StackPanel>
             <StackPanel x:Name="SentRawDataPanel" Grid.Row="1"
                                     VerticalAlignment="Stretch">
                 <TextBlock x:Name="SentRawDataTitleBlock" Text="原始发送数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10" ></TextBlock>
-                <RichTextBox x:Name="SentRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True"></RichTextBox>
+                <TextBox x:Name="SentRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap"/>
             </StackPanel>
         </Grid>
     </Grid>

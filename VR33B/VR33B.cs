@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
+using System.Threading;
 
 namespace VR33B
 {
     public enum VR33BSettingResult { Succss, Falied}
     public enum VR33BReadResult { Success, Failed}
+
+    public enum VR33BConnectionState { NotConnected, Connecting, Success, Failed}
     public class VR33BTerminal
     {
         public byte Address = 0x02;
@@ -49,6 +52,8 @@ namespace VR33B
         public event EventHandler<VR33BSampleValue> OnVR33BSampleValueReceived;
         public event EventHandler OnVR33BSampleEnded;
 
+        public event EventHandler<VR33BConnectionState> OnConnectonStateChanged;
+
         public IVR33BStorage VR33BSampleDataStorage { get; }
 
         public bool UseFakeSampleValueGenerator { get; }
@@ -63,6 +68,8 @@ namespace VR33B
         /// PC中保存的最新的设置（可能和实际有出入，但是一旦获取到新的设置后会自动填充进这个设置里，（除非前端作死自己去使用SendCommand函数啥的）
         /// </summary>
         public VR33BSetting LatestSetting { get; internal set; }
+
+        public VR33BConnectionState ConnectionState { get; private set; }
 
         public VR33BTerminal(IVR33BStorage storage, bool useFakeSampleValueGenerator = false)
         {
@@ -84,6 +91,8 @@ namespace VR33B
             SerialPort.DataBits = 8;
             SerialPort.Handshake = Handshake.None;
             SerialPort.RtsEnable = true;
+
+            ConnectionState = VR33BConnectionState.NotConnected;
 
             _CurrentSampleIndex = 0;
 
@@ -367,6 +376,19 @@ namespace VR33B
                 return (VR33BReadResult.Failed, VR33BSampleFrequence._1Hz);
             }
         }
+
+        public async Task<(VR33BReadResult, byte)> ReadDeviceAddressAsync()
+        {
+            var response = await SendCommandAsync(new ReadAddressCommand());
+            if(response.Success)
+            {
+                return (VR33BReadResult.Success, response.Response.Data[0]);
+            }
+            else
+            {
+                return (VR33BReadResult.Failed, 0);
+            }
+        }
         public async Task<VR33BSettingResult> SetSampleFrequencyAsync(VR33BSampleFrequence sampleFrequency)
         {
             var response = await SendCommandAsync(new SetSampleFrequencyCommand(this, sampleFrequency));
@@ -437,18 +459,45 @@ namespace VR33B
 
         public async Task ConnectAsync()
         {
+            if(ConnectionState == VR33BConnectionState.Success)
+            {
+                return;
+            }
+            ConnectionState = VR33BConnectionState.Connecting;
+            OnConnectonStateChanged?.Invoke(this, ConnectionState);
             if(SerialPort.IsOpen)
             {
+                ConnectionState = VR33BConnectionState.Failed;
+                OnConnectonStateChanged?.Invoke(this, ConnectionState);
                 return;
             }
             try
             {
                 SerialPort.Open();
-                await ReadSampleFrequencyAsync();
-
+                await Task.Run(() =>
+                {
+                    Thread.Sleep(2000);
+                });
+                
+                var addresssResult = await ReadDeviceAddressAsync();
+                if(addresssResult.Item1 == VR33BReadResult.Failed)
+                {
+                    ConnectionState = VR33BConnectionState.Failed;
+                    OnConnectonStateChanged?.Invoke(this, ConnectionState);
+                    SerialPort.Close();
+                    return;
+                }
+                else
+                {
+                    ConnectionState = VR33BConnectionState.Success;
+                    OnConnectonStateChanged?.Invoke(this, ConnectionState);
+                    return;
+                }
             }
             catch(Exception e)
             {
+                ConnectionState = VR33BConnectionState.Failed;
+                OnConnectonStateChanged?.Invoke(this, ConnectionState);
                 System.Diagnostics.Debug.WriteLine(e.Message);
             }
             
@@ -591,6 +640,25 @@ namespace VR33B
             receiveData.ReadOrWrite = (VR33BMessageType)byteArray[1];
             receiveData.Data = new List<byte>(byteArray).GetRange(3, (int)(byteArray[2])).ToArray();
             return receiveData;
+        }
+
+        public byte[] RawByteArray
+        {
+            get
+            {
+                List<byte> byteArrayList = new List<byte>();
+                byteArrayList.Add(DeviceAddress);
+                byteArrayList.Add((byte)ReadOrWrite);
+                byteArrayList.Add((byte)Data.Length);
+                for(int i = 0; i<Data.Length;i++)
+                {
+                    byteArrayList.Add(Data[i]);
+                }
+                var crcResult = VR33BUtility.Crc16(byteArrayList.ToArray());
+                byteArrayList.AddRange(BitConverter.GetBytes( crcResult));
+                return byteArrayList.ToArray();
+
+            }
         }
 
         public override string ToString()

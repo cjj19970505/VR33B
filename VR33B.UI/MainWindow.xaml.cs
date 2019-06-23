@@ -38,10 +38,10 @@ namespace VR33B.UI
         private void SensorConfigureTabFrame_ContentRendered(object sender, EventArgs e)
         {
             SensorConfigurePage = (SensorConfigureTab.Content as Frame).Content as SensorConfigurePage;
-            SensorConfigurePage.DataContext = VR33BTerminal;
+            SensorConfigurePage.SettingViewModel.VR33BTerminal = VR33BTerminal;
 
             SerialPortControlPage = (SerialConfigureTab.Content as Frame).Content as SerialPortControlPage;
-            SerialPortControlPage.ViewModel.SerialPort = VR33BTerminal.SerialPort;
+            SerialPortControlPage.ViewModel.VR33BTerminal = VR33BTerminal;
 
         }
 

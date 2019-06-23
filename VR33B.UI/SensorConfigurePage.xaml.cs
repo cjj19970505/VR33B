@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -22,13 +24,6 @@ namespace VR33B.UI
     /// </summary>
     public partial class SensorConfigurePage : Page
     {
-        public VR33BTerminal VR33BTerminal
-        {
-            get
-            {
-                return (VR33BTerminal)DataContext;
-            }
-        }
         public SensorConfigurePage()
         {
             InitializeComponent();
@@ -85,8 +80,104 @@ namespace VR33B.UI
             var removeFrequence = _ComboxItemToVR33BSampleFrequence(removeComboBoxItem);
             var addedFrequence = _ComboxItemToVR33BSampleFrequence(addedComBoxItem);
             SamplingRateRing.Visibility = Visibility.Visible;
-            var response = await VR33BTerminal.SetSampleFrequencyAsync(addedFrequence);
+            var response = await SettingViewModel.VR33BTerminal.SetSampleFrequencyAsync(addedFrequence);
             await Dispatcher.InvokeAsync(() => { SamplingRateRing.Visibility = Visibility.Collapsed; });
+        }
+
+        private async void ConnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
+            {
+                await SettingViewModel.VR33BTerminal.ConnectAsync();
+            }
+            
+        }
+    }
+
+    public class VR33BSettingViewModel : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+        private VR33BTerminal _VR33BTerminal;
+
+        public VR33BTerminal VR33BTerminal
+        {
+            get
+            {
+                return _VR33BTerminal;
+            }
+            set
+            {
+                if(_VR33BTerminal != null)
+                {
+
+                }
+                _VR33BTerminal = value;
+                _VR33BTerminal.OnConnectonStateChanged += _VR33BTerminal_OnConnectonStateChanged;
+            }
+        }
+
+        
+        public VR33BConnectionState ConnectionState
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return VR33BConnectionState.NotConnected;
+                }
+                return VR33BTerminal.ConnectionState;
+            }
+        }
+
+        private void _VR33BTerminal_OnConnectonStateChanged(object sender, VR33BConnectionState e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ConnectionState"));
+        }
+    }
+
+    internal class ConnectionStateToButtonContentConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            VR33BConnectionState connectionState = (VR33BConnectionState)value;
+            switch(connectionState)
+            {
+                case VR33BConnectionState.NotConnected:
+                    return "未连接";
+                case VR33BConnectionState.Connecting:
+                    return "连接中";
+                case VR33BConnectionState.Success:
+                    return "已连接";
+                case VR33BConnectionState.Failed:
+                    return "连接失败";
+            }
+            return "WHAT??";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class ConnectionStateToEnableConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            VR33BConnectionState connectionState = (VR33BConnectionState)value;
+            if(connectionState == VR33BConnectionState.Success)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

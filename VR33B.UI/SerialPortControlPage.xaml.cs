@@ -50,11 +50,14 @@ namespace VR33B.UI
             //StopBitBox.SelectedItem = StopBits.One;
             ParityBitBox.ItemsSource = Enum.GetValues(typeof(Parity));
             //ParityBitBox.SelectedItem = Parity.None;
-            
-            
+            //FlowDocument flowDocument = new FlowDocument();
+            //ReceivedRawDataBox.Document = flowDocument;
+            //flowDocument.set
+
+
         }
         private ObservableCollection<string> serialPortNames;
-        private ObservableCollection<int> baudRates = new ObservableCollection<int> { 9600 };
+        private ObservableCollection<int> baudRates = new ObservableCollection<int> { 115200 };
         private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
 
         /// <summary>
@@ -106,17 +109,79 @@ namespace VR33B.UI
                 serialPortNames.Add(serialPortName);
                 SerialNoBox.SelectedItem = serialPortNames[0];
             }
+            ViewModel.OnReceived += ViewModel_OnReceived;
+            ViewModel.OnSerialPortSent += ViewModel_OnSerialPortSent;
         }
 
         private void Page_Unloaded(object sender, RoutedEventArgs e)
         {
+            ViewModel.OnReceived -= ViewModel_OnReceived;
+            ViewModel.OnSerialPortSent -= ViewModel_OnSerialPortSent;
+        }
 
+        private async void ViewModel_OnSerialPortSent(object sender, VR33BSendData e)
+        {
+            var hexStringArray = from receiveByte in e.SendBytes
+                                 select string.Format("{0:x2}", receiveByte);
+            var hexString = string.Join(" ", hexStringArray) + Environment.NewLine;
+            await Dispatcher.InvokeAsync(() =>
+            {
+                SentRawDataBox.Text += hexString;
+            });
+        }
+
+        private async void ViewModel_OnReceived(object sender, VR33BReceiveData e)
+        {
+            var hexStringArray = from receiveByte in e.RawByteArray
+                                 select string.Format("{0:x2}", receiveByte);
+            var hexString = string.Join(" ", hexStringArray);
+            await Dispatcher.InvokeAsync(() =>
+            {
+                ReceivedRawDataBox.Text += hexString;
+            });
         }
     }
 
     public class SerialPortViewModel:INotifyPropertyChanged
     {
-        public SerialPort SerialPort { get; set; }
+
+        private VR33BTerminal _VR33BTerminal;
+
+        public event EventHandler<VR33BReceiveData> OnReceived;
+        public event EventHandler<VR33BSendData> OnSerialPortSent;
+
+        public VR33BTerminal VR33BTerminal
+        {
+            get
+            {
+                return _VR33BTerminal;
+            }
+            set
+            {
+                if(_VR33BTerminal != null)
+                {
+
+                }
+                _VR33BTerminal = value;
+                _VR33BTerminal.OnReceived += OnReceived;
+                _VR33BTerminal.OnSerialPortSent += OnSerialPortSent;
+
+            }
+        }
+        
+
+
+        public SerialPort SerialPort
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return null;
+                }
+                return VR33BTerminal.SerialPort;
+            }
+        }
         public string PortName
         {
             get
