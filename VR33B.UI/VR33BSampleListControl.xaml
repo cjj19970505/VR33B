@@ -8,9 +8,16 @@
              d:DesignHeight="450" d:DesignWidth="800"
              Loaded="UserControl_Loaded"
              Unloaded="UserControl_Unloaded">
-    <StackPanel>
+    <UserControl.DataContext>
+        <local:VR33BSampleListControlViewModel x:Name="ViewModel"/>
+    </UserControl.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <Expander Header="筛选">
+        <Expander Header="筛选" Grid.Row="0">
             <StackPanel Orientation="Horizontal">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -24,20 +31,24 @@
                     </Grid.RowDefinitions>
 
                     <Label Content="Min Index" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MinIndexFilterTextBox" Grid.Row="0" Grid.Column="1" Text="0" Margin="5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MinIndexFilterTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center" LostFocus="MinIndexFilterTextBox_LostFocus"/>
                     <Label Content="Max Index" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MaxIndexFilterTextBox" Grid.Row="1" Grid.Column="1" Text="100" Margin="5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MaxIndexFilterTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center" LostFocus="MaxIndexFilterTextBox_LostFocus"/>
                     <CheckBox Content="异常点" Margin="10" Grid.Column="2"/>
                 </Grid>
             </StackPanel>
         </Expander>
-        <DataGrid x:Name="SampleDataGrid" AutoGenerateColumns="False">
+        <DataGrid x:Name="SampleDataGrid" AutoGenerateColumns="False" ItemsSource="{Binding Path=DataGridItemSource, Mode=OneWay}" SelectionMode="Single"
+                  SelectedCellsChanged="SampleDataGrid_SelectedCellsChanged"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                  ScrollViewer.CanContentScroll="True"
+                  Grid.Row="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="索引" Binding="{Binding Path=SampleIndex}" CanUserResize="True" CanUserSort="True"/>
-                <DataGridTextColumn Header="采样时间" Binding="{Binding Path=SampleDateTime}" CanUserResize="True" CanUserSort="True"/>
-                <DataGridTextColumn Header="加速度" Binding="{Binding Path=AccelerometerValue}" CanUserResize="True" CanUserSort="False"/>
+                <DataGridTextColumn Header="索引" Binding="{Binding Path=SampleIndex}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
+                <DataGridTextColumn Header="采样时间" Binding="{Binding Path=SampleDateTime}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
+                <DataGridTextColumn Header="加速度" Binding="{Binding Path=AccelerometerValue}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
             </DataGrid.Columns>
         </DataGrid>
-    </StackPanel>
+    </Grid>
     
 </UserControl>

@@ -83,7 +83,7 @@ namespace VR33B
             _CommandSessionQueueLock = new object();
             _CommandSessionQueue = new Queue<CommandSession>();
             _SendCommandToSerialPortFromQueueTask();
-            SerialPort = new SerialPort("COM3");
+            SerialPort = new SerialPort();
 
             SerialPort.DataReceived += SerialPort_DataReceived;
             SerialPort.BaudRate = 115200;

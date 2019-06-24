@@ -176,6 +176,58 @@ namespace VR33B.Storage
                 
             });
         }
+
+        public Task<List<VR33BSampleValue>> GetFromSampleIndexRangeAsync(long minIndex, long maxIndex)
+        {
+            return Task.Run(() =>
+            {
+                List<VR33BSampleValue> inMemoryQueryResult = new List<VR33BSampleValue>();
+                List<VR33BSampleValue> inDatabaseQueryResult = new List<VR33BSampleValue>();
+                bool inDatabaseQueryNeeded = true;
+                lock (_InMemoryBufferLock)
+                {
+                    if(_InMemoryBuffer.Count > 0)
+                    {
+                        if(minIndex >= _InMemoryBuffer.First().SampleIndex && maxIndex <= _InMemoryBuffer.Last().SampleIndex)
+                        {
+                            inDatabaseQueryNeeded = false;
+                        }
+                        inMemoryQueryResult = (from entity in _InMemoryBuffer
+                                               where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
+                                               select entity.ToStruct()).ToList();
+                    }
+                }
+                if(inDatabaseQueryNeeded)
+                {
+                    lock(_DataContextLock)
+                    {
+                        inDatabaseQueryResult.AddRange((from entity in _DataContext.SampleValueEntities
+                                                   where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
+                                                   select entity.ToStruct()).ToList());
+                        inDatabaseQueryResult.Sort((value1, value2) =>
+                        {
+                            if (value1.SampleIndex < value2.SampleIndex)
+                            {
+                                return -1;
+                            }
+                            else if (value1.SampleIndex == value2.SampleIndex)
+                            {
+                                return 0;
+                            }
+                            else
+                            {
+                                return 1;
+                            }
+
+                        });
+                    }
+                }
+                var list = new List<VR33BSampleValue>();
+                list.AddRange(inDatabaseQueryResult);
+                list.AddRange(inMemoryQueryResult);
+                return list;
+            });
+        }
     }
 
     internal class VR33BSqliteStorageContext : DbContext

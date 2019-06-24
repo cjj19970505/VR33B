@@ -27,6 +27,8 @@ namespace VR33B.LineGraphic
         public LineSeries XLineSeries { get; }
         public LineSeries YLineSeries { get; }
         public LineSeries ZLineSeries { get; }
+
+        public LineSeries IndicatorSeries { get; }
         public TimeSpanAxis TimeSpanPlotAxis { get; }
 
         private VR33BTerminal _VR33BTerminal;
@@ -247,9 +249,15 @@ namespace VR33B.LineGraphic
             ZLineSeries.MarkerFill = ZLineSeries.Color;
             ZLineSeries.Title = "Y-Axis";
 
+            IndicatorSeries = new LineSeries();
+            IndicatorSeries.Color = OxyColors.Black;
+            IndicatorSeries.Title = "Indicator";
+            IndicatorSeries.StrokeThickness = 1;
+
             OxyPlotModel.Series.Add(XLineSeries);
             OxyPlotModel.Series.Add(YLineSeries);
             OxyPlotModel.Series.Add(ZLineSeries);
+            OxyPlotModel.Series.Add(IndicatorSeries);
 
             XAxisLegendView.DataContext = XLineSeries;
             YAxisLegendView.DataContext = YLineSeries;
@@ -316,6 +324,21 @@ namespace VR33B.LineGraphic
                 }
             }
         }
+
+        public void PanTo(DateTime dateTime)
+        {
+            TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * 0.5 + _LatestPlotAxisActualMinMax.ActualMinimum) - TimeSpanAxis.ToDouble(dateTime - _FirstSampleDateTime)) * TimeSpanPlotAxis.Scale);
+            OxyPlotView.InvalidatePlot(false);
+        }
+
+        public void Indicate(DateTime dateTime)
+        {
+            double x = TimeSpanAxis.ToDouble((dateTime - _FirstSampleDateTime));
+            IndicatorSeries.ItemsSource = new DataPoint[2] { new DataPoint(x, 100), new DataPoint(x, -100) };
+            TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * 0.5 + _LatestPlotAxisActualMinMax.ActualMinimum) - TimeSpanAxis.ToDouble(dateTime - _FirstSampleDateTime)) * TimeSpanPlotAxis.Scale);
+            OxyPlotView.InvalidatePlot(true);
+        }
+
     }
 
 

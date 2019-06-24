@@ -15,14 +15,14 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="GraphicImageColumn" Width="auto"/>
             <ColumnDefinition x:Name="SeparateColumn" Width="auto"/>
-            <ColumnDefinition x:Name="GraphicDataColumn" Width="auto"/>
+            <ColumnDefinition x:Name="GraphicDataColumn" Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid x:Name="GraphicImageGrid" Grid.Column="0">
             <linegraphic:VR33BOxyPlotControl x:Name="VR33BOxyPlotControl" Margin="5"/>
         </Grid>
         <GridSplitter x:Name="GraphicViewSplitter" Grid.Column="1" Width="5" ResizeBehavior="PreviousAndNext"></GridSplitter>
         <Grid x:Name="GraphicDataGrid" Grid.Column="2">
-            <local:VR33BSampleListControl x:Name="SampleListControl" Margin="5"/>
+            <local:VR33BSampleListControl x:Name="SampleListControl" Margin="5" OnSampleValueSelectionChanged="SampleListControl_OnSampleValueSelectionChanged" Height="auto"/>
         </Grid>
     </Grid>
 </Page>

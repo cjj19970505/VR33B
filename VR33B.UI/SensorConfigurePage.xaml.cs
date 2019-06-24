@@ -54,11 +54,19 @@ namespace VR33B.UI
 
         private async void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
+
             if(SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
             {
-                await SettingViewModel.VR33BTerminal.ConnectAsync();
+                try
+                {
+                    await SettingViewModel.VR33BTerminal.ConnectAsync();
+                }
+                catch(Exception exception)
+                {
+                    System.Diagnostics.Debug.WriteLine(exception);
+                }
+                
             }
-            
         }
 
         private async void AccelerometerRangeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

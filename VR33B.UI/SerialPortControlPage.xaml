@@ -24,7 +24,7 @@
         <StackPanel x:Name="SerialConfigurePanel" Grid.Column="0" VerticalAlignment="Stretch">
             <StackPanel x:Name="SerialNoPanel" Orientation="Horizontal">
                 <TextBlock Text="串口号：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                <ComboBox x:Name="SerialNoBox" Width="60" />
+                <ComboBox x:Name="SerialNoBox" Width="60" SelectedValue="{Binding Path=PortName, Mode=OneWayToSource}"/>
             </StackPanel>
             <StackPanel x:Name="BaudRatePanel" Orientation="Horizontal">
                 <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>

@@ -41,6 +41,21 @@ namespace VR33B.UI
             InitializeComponent();
             
         }
+
+        private void SampleListControl_OnSampleValueSelectionChanged(object sender, VR33BSampleValue? e)
+        {
+            if(e == null)
+            {
+
+            }
+            else
+            {
+                var sampleValue = e.Value;
+                VR33BOxyPlotControl.TrackingModeOn = false;
+                VR33BOxyPlotControl.Indicate(sampleValue.SampleDateTime);
+            }
+
+        }
     }
 
     internal class GraphicGridViewModel

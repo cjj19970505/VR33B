@@ -116,8 +116,19 @@ namespace VR33B.Storage
             
         }
 
-        
-
-        
+        public Task<List<VR33BSampleValue>> GetFromSampleIndexRangeAsync(long minIndex, long maxIndex)
+        {
+            return Task.Run(() =>
+            {
+                lock (_SampleValuesLock)
+                {
+                    var query = (from sampleValue in _SampleValues
+                                 where sampleValue.SampleIndex >= minIndex && sampleValue.SampleIndex <= maxIndex
+                                 select sampleValue).ToList();
+                    //Thread.Sleep(query.Count);
+                    return query;
+                }
+            });
+        }
     }
 }
