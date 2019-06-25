@@ -138,6 +138,11 @@ namespace VR33B.UI
                 ReceivedRawDataBox.Text += hexString;
             });
         }
+
+        private void SendBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine(e.Key);
+        }
     }
 
     public class SerialPortViewModel:INotifyPropertyChanged
