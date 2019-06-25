@@ -3,6 +3,7 @@ using OxyPlot.Axes;
 using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,8 +22,9 @@ namespace VR33B.LineGraphic
     /// <summary>
     /// VR33BOxyPlotControl.xaml 的交互逻辑
     /// </summary>
-    public partial class VR33BOxyPlotControl : UserControl
+    public partial class VR33BOxyPlotControl : UserControl, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
         public PlotModel OxyPlotModel { get; }
         public LineSeries XLineSeries { get; }
         public LineSeries YLineSeries { get; }
@@ -69,7 +71,19 @@ namespace VR33B.LineGraphic
 
         }
 
-        public bool TrackingModeOn { get; set; }
+        bool _TrackingModeOn;
+        public bool TrackingModeOn
+        {
+            get
+            {
+                return _TrackingModeOn;
+            }
+            set
+            {
+                _TrackingModeOn = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TrackingModeOn"));
+            }
+        }
 
         private VR33BSampleValue[] _LoadedSampleValues;
 
@@ -290,6 +304,9 @@ namespace VR33B.LineGraphic
 
         DateTime _LatestBeginPlotDateTime = DateTime.Now;
         TimeSpan _LatestPlotTimeSpan = new TimeSpan(0);
+
+        
+
         private void OxyPlotModel_Updated(object sender, EventArgs e)
         {
             //System.Diagnostics.Debug.WriteLine("PlotTimeSpan:"+(DateTime.Now - _LatestBeginPlotDateTime).TotalMilliseconds);
@@ -334,7 +351,7 @@ namespace VR33B.LineGraphic
         public void Indicate(DateTime dateTime)
         {
             double x = TimeSpanAxis.ToDouble((dateTime - _FirstSampleDateTime));
-            IndicatorSeries.ItemsSource = new DataPoint[2] { new DataPoint(x, 100), new DataPoint(x, -100) };
+            IndicatorSeries.ItemsSource = new DataPoint[2] { new DataPoint(x, 10), new DataPoint(x, -10) };
             TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * 0.5 + _LatestPlotAxisActualMinMax.ActualMinimum) - TimeSpanAxis.ToDouble(dateTime - _FirstSampleDateTime)) * TimeSpanPlotAxis.Scale);
             OxyPlotView.InvalidatePlot(true);
         }

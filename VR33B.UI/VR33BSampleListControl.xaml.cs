@@ -103,11 +103,19 @@ namespace VR33B.UI
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             _VR33BTerminal.VR33BSampleDataStorage.Updated -= VR33BSampleDataStorage_Updated;
+            
         }
         private VR33BSampleValue _LatestAddedToDataGridSampleValue;
         private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
         {
             bool filterResult = true;
+            if(e.SampleIndex == 0)
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    ViewModel.DataGridItemSource.Clear();
+                });
+            }
             if (ViewModel.DataGridItemSource.Count > 0)
             {
                 filterResult = _Filter(_LatestAddedToDataGridSampleValue);
@@ -131,9 +139,18 @@ namespace VR33B.UI
 
                     await Dispatcher.InvokeAsync(() =>
                     {
+                        
                         foreach (var value in filteredSampleValues)
                         {
-                            ViewModel.DataGridItemSource.Add(value);
+                            if(ViewModel.DataGridItemSource.Count > 0 && ViewModel.DataGridItemSource.Last().SampleIndex >= value.SampleIndex)
+                            {
+                                
+                            }
+                            else
+                            {
+                                ViewModel.DataGridItemSource.Add(value);
+                            }
+                            
                         }
                     });
                 }
