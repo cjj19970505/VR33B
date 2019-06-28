@@ -139,6 +139,7 @@ namespace VR33B.LineGraphic
         private DateTime _FirstSampleDateTime;
 
         private (double ActualMinimum, double ActualMaximum) _LatestPlotAxisActualMinMax;
+
         bool _TrackingModeReploting = false;
         private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
         {
@@ -168,11 +169,6 @@ namespace VR33B.LineGraphic
             }
         }
         private Guid _LatestReplotGuid;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        
         private Task _ReplotAsync()
         {
             var replotGuid = _LatestReplotGuid = Guid.NewGuid();
@@ -305,8 +301,6 @@ namespace VR33B.LineGraphic
         DateTime _LatestBeginPlotDateTime = DateTime.Now;
         TimeSpan _LatestPlotTimeSpan = new TimeSpan(0);
 
-        
-
         private void OxyPlotModel_Updated(object sender, EventArgs e)
         {
             //System.Diagnostics.Debug.WriteLine("PlotTimeSpan:"+(DateTime.Now - _LatestBeginPlotDateTime).TotalMilliseconds);
@@ -356,6 +350,16 @@ namespace VR33B.LineGraphic
             OxyPlotView.InvalidatePlot(true);
         }
 
+    }
+
+    public struct VR33BOxyPlotSetting
+    {
+        public double ReloadRangeAndLoadedRangeRatio { get; set; }
+        public double LoadedRangeAndDisplayRangeRatio { get; set; }
+        public double MinDisplayRangeAndLoadedRangeRatio { get; set; }
+        public int MaxLoadedSampleCountInTracking { get; set; }
+        public TimeSpan BaseUpdateTimeSpan { get; set; }
+        public TimeSpan MaxUpdateTimeSpan { get; set; }
     }
 
 
