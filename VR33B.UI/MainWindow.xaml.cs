@@ -62,23 +62,5 @@ namespace VR33B.UI
         {
             StateBlock.Text = stateMessage;
         }
-
-        //接收到数据
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            SerialPort sp = (SerialPort)sender;
-            string indata = sp.ReadExisting();
-            //ReceivedRawDataBox.AppendText(indata);
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            SerialPortControlPage.OnStateChanged += SerialPortControlPage_OnStateChanged;
-        }
-
-        private void Window_Unloaded(object sender, RoutedEventArgs e)
-        {
-            SerialPortControlPage.OnStateChanged -= SerialPortControlPage_OnStateChanged;
-        }
     }
 }

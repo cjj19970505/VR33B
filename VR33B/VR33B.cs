@@ -84,7 +84,10 @@ namespace VR33B
             _CommandSessionQueue = new Queue<CommandSession>();
             _SendCommandToSerialPortFromQueueTask();
             SerialPort = new SerialPort();
-
+            if(SerialPort.GetPortNames().Length > 0)
+            {
+                SerialPort.PortName = SerialPort.GetPortNames()[0];
+            }
             SerialPort.DataReceived += SerialPort_DataReceived;
             SerialPort.BaudRate = 115200;
             SerialPort.StopBits = StopBits.One;

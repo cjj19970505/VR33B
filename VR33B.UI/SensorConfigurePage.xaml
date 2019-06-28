@@ -180,20 +180,21 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
-                </Grid.ColumnDefinitions>
-                <Button x:Name="StartButton" Grid.Column="0" Content="确定" Margin="0, 0, 5, 5" ></Button>
-                <Button x:Name="CalibrateButton" Grid.Column="1" Content="校准X、Y、Z轴" Margin="5, 0, 0, 5" ></Button>
-            </Grid>
-            <Grid>
-                <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Button x:Name="QueryButton" Grid.Column="0" Content="查询各项参数" Margin="0, 5, 5, 0" ></Button>
-                <Button x:Name="RestoreButton" Grid.Column="1" Content="恢复出厂设置" Margin="5, 5, 0, 0"></Button>
+                <Button x:Name="StartButton" Grid.Column="0" Content="确定" Margin="5"/>
+                <Button x:Name="CalibrateButton" Grid.Column="1" Content="校准" Margin="5"/>
+                <Button x:Name="QueryButton" Grid.Column="2" Content="查询各项参数" Margin="5" ></Button>
+                <Button x:Name="RestoreButton" Grid.Column="3" Content="恢复出厂设置" Margin="5"></Button>
             </Grid>
-            <Button x:Name="SampleButton" Content="{Binding Path=Sampling, Converter={StaticResource ResourceKey=SamplingToButtonContentConverter}, Mode=OneWay}" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}" Click="SampleButton_Click"/>
-            <Button x:Name="ConnectButton" Content="{Binding Path=ConnectionState, Converter={StaticResource ResourceKey=ConnectionStateToButtonContentConverter}, Mode=OneWay}" Margin="0,5,0,0" Click="ConnectButton_Click"/>
+            <Button x:Name="SampleButton" Content="{Binding Path=Sampling, Converter={StaticResource ResourceKey=SamplingToButtonContentConverter}, Mode=OneWay}" 
+                    Margin="5,2.5,5,2.5"
+                    IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}" 
+                    Click="SampleButton_Click"/>
+            <Button x:Name="ConnectButton" Content="{Binding Path=ConnectionState, Converter={StaticResource ResourceKey=ConnectionStateToButtonContentConverter}, Mode=OneWay}" 
+                    Margin="5, 2.5, 5, 2.5" 
+                    Click="ConnectButton_Click"/>
             
         </StackPanel>
     </Grid>
