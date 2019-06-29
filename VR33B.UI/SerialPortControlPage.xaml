@@ -56,7 +56,7 @@
                 <RowDefinition Height="4*"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
                 <RowDefinition Height="4*"></RowDefinition>
-                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="auto"></RowDefinition>
             </Grid.RowDefinitions>
             <TextBlock x:Name="ReceivedRawDataTitleBlock" Grid.Row="0" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
             <TextBox x:Name="ReceivedRawDataBox" Grid.Row="1" VerticalAlignment="Stretch" Margin="5" BorderThickness="1" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Text="{Binding Path=ReceiveBoxText, Mode=TwoWay}"/>

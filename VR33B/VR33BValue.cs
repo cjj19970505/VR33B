@@ -103,8 +103,5 @@ namespace VR33B
             };
             return sampleValue;
         }
-
-
-
     }
 }

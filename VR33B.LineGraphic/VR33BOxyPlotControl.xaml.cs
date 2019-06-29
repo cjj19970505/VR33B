@@ -249,12 +249,23 @@ namespace VR33B.LineGraphic
                 MaxUpdateTimeSpan = TimeSpan.FromMilliseconds(500)
             };
             var fileName = "VR33BOxyPlotSetting.xml";
-            XmlSerializer writer = new XmlSerializer(typeof(VR33BOxyPlotSetting));
             var filePath = Environment.CurrentDirectory + "//" + fileName;
-            using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            XmlSerializer serializer = new XmlSerializer(typeof(VR33BOxyPlotSetting));
+            if(!File.Exists(filePath))
             {
-                writer.Serialize(settingStream, defaultSetting);
-            };
+                using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    serializer.Serialize(settingStream, defaultSetting);
+                };
+                Setting = defaultSetting;
+            }
+            else
+            {
+                using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    Setting = (VR33BOxyPlotSetting)serializer.Deserialize(settingStream);
+                };
+            }
 
             DataContext = this;
             _Visible = Visibility == Visibility.Visible;
