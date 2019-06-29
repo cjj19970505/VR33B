@@ -47,6 +47,7 @@ namespace VR33B.UI
 
         }
 
+
         /// <summary>
         /// 窗口大小改变时要改变两个RichTextBlock的值
         /// </summary>
@@ -156,8 +157,15 @@ namespace VR33B.UI
 
         private void SendBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            Regex match = new Regex("[^0-9a-hA-H\\s-]+");
-            e.Handled = match.IsMatch(e.Text);
+            Regex match = new Regex(@"^([0-9a-hA-H]{1,2}\s+)*([0-9a-hA-H]{1,2}\s*)$");
+            if(match.IsMatch((sender as TextBox).Text + e.Text))
+            {
+                e.Handled = false;
+            }
+            else
+            {
+                e.Handled = true;
+            }
         }
 
         private void Page_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -177,6 +185,51 @@ namespace VR33B.UI
                 ViewModel.OnReceived -= ViewModel_OnReceived;
                 
             }
+
+        }
+
+        private UInt16 Crc16(byte[] buf)
+        {
+            UInt16 i, j, crc;
+            crc = 0xffff;
+            int length = buf.Length;
+            for (i = 0; i < length; i++)
+            {
+                crc ^= (UInt16)buf[i]; //°´Î»È¡·´
+                for (j = 0; j < 8; j++)
+                {
+                    if ((crc & 0x0001) != 0)
+                    {
+                        crc >>= 1;
+                        crc ^= 0xa001;
+                    }
+                    else
+                    {
+                        crc >>= 1;
+                    }
+                }
+            }
+            return crc;
+        }
+
+        private void SendBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var hexSplitMatch = new Regex(@"\b[0-9a-hA-H]{1,2}\b");
+            var spliteResult = hexSplitMatch.Matches(SendBox.Text);
+            var hexBytes = new List<byte>();
+            foreach(var hexStr in spliteResult)
+            {
+                hexBytes.Add(_HexStringToByte(((Match)hexStr).Value));
+            }
+            var crc = Crc16(hexBytes.ToArray());
+            var crcBytes = BitConverter.GetBytes(crc);
+            StringBuilder sb = new StringBuilder();
+            foreach(var crcByte in crcBytes)
+            {
+                sb.AppendFormat("{0:X2} ", crcByte);
+            }
+            CrcBox.Text = sb.ToString();
+            
 
         }
     }

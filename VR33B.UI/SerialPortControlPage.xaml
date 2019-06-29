@@ -72,8 +72,8 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SendBox" Grid.Column="0" BorderThickness="1" KeyDown="SendBox_KeyDown" PreviewTextInput="SendBox_PreviewTextInput"/>
-                    <TextBox x:Name="CrcBox" Grid.Column="1" BorderThickness="1" KeyDown="SendBox_KeyDown" PreviewTextInput="SendBox_PreviewTextInput"/>
+                    <TextBox x:Name="SendBox" Grid.Column="0" BorderThickness="1" KeyDown="SendBox_KeyDown" PreviewTextInput="SendBox_PreviewTextInput" TextChanged="SendBox_TextChanged"/>
+                    <TextBox x:Name="CrcBox" Grid.Column="1" BorderThickness="1" IsReadOnly="True"/>
                 </Grid>
                 
                 
