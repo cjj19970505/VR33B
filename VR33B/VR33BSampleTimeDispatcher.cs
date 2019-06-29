@@ -20,7 +20,7 @@ namespace VR33B
             }
             private set
             {
-                if(_VR33BTerminal != null)
+                if (_VR33BTerminal != null)
                 {
                     _VR33BTerminal.OnVR33BSampleValueReceived -= _VR33BTerminal_OnVR33BSampleValueReceived;
                 }
@@ -29,7 +29,10 @@ namespace VR33B
             }
         }
 
-        private List<VR33BSampleValue> _CurrentSecondSampleValues;
+        private object _SampleValuesBufferLock;
+        private List<VR33BSampleValue> _SampleValuesBuffer;
+
+
 
 
         /// <summary>
@@ -40,36 +43,53 @@ namespace VR33B
         public VR33BSampleTimeDispatcher(VR33BTerminal terminal)
         {
             VR33BTerminal = terminal;
-
-            _CurrentSecondSampleValues = new List<VR33BSampleValue>();
+            _SampleValuesBufferLock = new object();
+            _SampleValuesBuffer = new List<VR33BSampleValue>();
         }
 
-        private void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
+        private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
-            if(_CurrentSecondSampleValues.Count == 0 || _CurrentSecondSampleValues.Last().SampleDateTime.Second == e.SampleDateTime.Second)
+            //OnSampleValueTimeDispatched?.Invoke(this, e);
+            //return;
+            lock (_SampleValuesBufferLock)
             {
-                _CurrentSecondSampleValues.Add(e);
-            }
-            else
-            {
-                TimeSpan addTimeSpan = TimeSpan.FromSeconds(1.0 / _CurrentSecondSampleValues.Count);
-                VR33BSampleValue firstInCurrentSecond = _CurrentSecondSampleValues.First();
-                
-                var timeDispatchedValues = _CurrentSecondSampleValues.ConvertAll((value) =>
+                if (_SampleValuesBuffer.Count == 0 || _SampleValuesBuffer.Last().SampleDateTime.Second == e.SampleDateTime.Second)
                 {
-                    var sampleValue = value;
-                    sampleValue.SampleDateTime = value.SampleDateTime.AddSeconds((value.SampleIndex - firstInCurrentSecond.SampleIndex) * addTimeSpan.TotalSeconds);
-                    return sampleValue;
-                });
-                _CurrentSecondSampleValues.Clear();
-                _CurrentSecondSampleValues.Add(e);
-                foreach (var sampleValue in timeDispatchedValues)
+                    _SampleValuesBuffer.Add(e);
+                    return;
+                }
+            }
+            List<VR33BSampleValue> sameSecondSampleValues;
+            lock (_SampleValuesBufferLock)
+            {
+                sameSecondSampleValues = _SampleValuesBuffer.ToList();
+                _SampleValuesBuffer.Clear();
+                _SampleValuesBuffer.Add(e);
+            }
+
+            await Task.Run(() =>
+            {
+                double addTimeSpanInMs = 1000.0 / sameSecondSampleValues.Count;
+                VR33BSampleValue firstInCurrentSecond = sameSecondSampleValues.First();
+                for (int i = 1; i < sameSecondSampleValues.Count; i++)
+                {
+                    var sampleValue = sameSecondSampleValues[i];
+                    sampleValue.SampleDateTime = firstInCurrentSecond.SampleDateTime.AddMilliseconds((sampleValue.SampleIndex - firstInCurrentSecond.SampleIndex) * addTimeSpanInMs);
+                    sameSecondSampleValues[i] = sampleValue;
+                }
+
+                for(int i = 1; i < sameSecondSampleValues.Count; i++)
+                {
+                    var sampleValue = sameSecondSampleValues[i];
+                }
+
+                foreach (var sampleValue in sameSecondSampleValues)
                 {
                     OnSampleValueTimeDispatched?.Invoke(this, sampleValue);
                 }
-            }
+            });
         }
 
-        
+
     }
 }

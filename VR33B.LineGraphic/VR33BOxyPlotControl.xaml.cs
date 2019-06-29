@@ -121,11 +121,6 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                //return new TimeSpan(0, 0, 0, 0, 200);
-                if (_LatestPlotTimeSpan.TotalMilliseconds >= 1)
-                {
-                    System.Diagnostics.Debug.WriteLine(_LatestPlotTimeSpan.TotalMilliseconds);
-                }
                 var possibleInterval = new TimeSpan(0, 0, 0, 0, 15) + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 150);
                 if (possibleInterval < TimeSpan.FromMilliseconds(500))
                 {

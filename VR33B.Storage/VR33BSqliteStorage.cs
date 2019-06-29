@@ -212,6 +212,22 @@ namespace VR33B.Storage
                         inMemoryQueryResult = (from entity in _InMemoryBuffer
                                                where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
                                                select entity.ToStruct()).ToList();
+                        inMemoryQueryResult.Sort((value1, value2) =>
+                        {
+                            if (value1.SampleIndex < value2.SampleIndex)
+                            {
+                                return -1;
+                            }
+                            else if (value1.SampleIndex == value2.SampleIndex)
+                            {
+                                return 0;
+                            }
+                            else
+                            {
+                                return 1;
+                            }
+
+                        });
                     }
                 }
                 if(inDatabaseQueryNeeded)

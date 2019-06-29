@@ -278,7 +278,14 @@ namespace VR33B
                             }
                             if (sessionRepeatCount > CurrentSession.Command.MaximumRepeatCount)
                             {
-                                CurrentSession.CommandState = VR33BCommandState.Failed;
+                                if(CurrentSession.Command.OnTimeout())
+                                {
+                                    CurrentSession.CommandState = VR33BCommandState.Success;
+                                }
+                                else
+                                {
+                                    CurrentSession.CommandState = VR33BCommandState.Failed;
+                                }
                             }
                             else
                             {
@@ -348,7 +355,7 @@ namespace VR33B
                 return true;
             }
 
-            var response = await SendCommandAsync(new StopSampleCommand());
+            var response = await SendCommandAsync(new StopSampleCommand(this));
             if(response.Success)
             {
                 Sampling = false;
@@ -440,6 +447,45 @@ namespace VR33B
             if (response.Success)
             {
                 LatestSetting.AccelerometerRange = accelerometerRange;
+                return VR33BSettingResult.Succss;
+            }
+            else
+            {
+                return VR33BSettingResult.Falied;
+            }
+        }
+
+        public async Task<VR33BSettingResult> CalibrateX()
+        {
+            var response = await SendCommandAsync(new CalibrateXCommand(this));
+            if (response.Success)
+            {
+                return VR33BSettingResult.Succss;
+            }
+            else
+            {
+                return VR33BSettingResult.Falied;
+            }
+        }
+
+        public async Task<VR33BSettingResult> CalibrateY()
+        {
+            var response = await SendCommandAsync(new CalibrateYCommand(this));
+            if (response.Success)
+            {
+                return VR33BSettingResult.Succss;
+            }
+            else
+            {
+                return VR33BSettingResult.Falied;
+            }
+        }
+
+        public async Task<VR33BSettingResult> CalibrateZ()
+        {
+            var response = await SendCommandAsync(new CalibrateZCommand(this));
+            if (response.Success)
+            {
                 return VR33BSettingResult.Succss;
             }
             else
@@ -580,6 +626,7 @@ namespace VR33B
         (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence { get; }
 
         bool IsResponse(VR33BReceiveData receiveData);
+        bool OnTimeout();
     }
 
     public class CommandSession
@@ -780,6 +827,11 @@ namespace VR33B
             return false;
         }
 
+        public bool OnTimeout()
+        {
+            return false;
+        }
+
         public ReadAddressCommand()
         {
             var sendData = new VR33BSendData
@@ -820,6 +872,11 @@ namespace VR33B
             {
                 return true;
             }
+            return false;
+        }
+
+        public bool OnTimeout()
+        {
             return false;
         }
 
@@ -867,6 +924,11 @@ namespace VR33B
             return false;
         }
 
+        public bool OnTimeout()
+        {
+            return false;
+        }
+
         public ReadSampleFrequencyCommand(VR33BTerminal vr33bTerminal)
         {
             var sendData = new VR33BSendData
@@ -911,6 +973,11 @@ namespace VR33B
                     return true;
                 }
             }
+            return false;
+        }
+
+        public bool OnTimeout()
+        {
             return false;
         }
 
@@ -968,6 +1035,11 @@ namespace VR33B
             return false;
         }
 
+        public bool OnTimeout()
+        {
+            return false;
+        }
+
         public StartSampleCommand(VR33BTerminal vr33bTerminal)
         {
             var sendData = new VR33BSendData
@@ -1004,23 +1076,35 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 1)
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 2)
             {
                 return true;
             }
             return false;
         }
 
-        public StopSampleCommand()
+        public bool OnTimeout()
+        {
+            return false;
+        }
+
+        public StopSampleCommand(VR33BTerminal vr33bTerminal)
         {
             var sendData = new VR33BSendData
             {
-                DeviceAddress = 0xff,
-                ReadOrWrite = VR33BMessageType.Read,
-                RegisterAddress = 0x01,
-                Data = new byte[] { 0, 1 }
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x012,
+                Data = new byte[] { 0, 0 }
             };
-            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
+            var confirmSendData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Read,
+                RegisterAddress = 0x0017,
+                Data = new byte[] { 0, 0 }
+            };
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)), (sendData, new TimeSpan(0, 0, 0, 0, 50)), (confirmSendData, new TimeSpan(0, 0, 0, 0, 50)) };
         }
     }
 
@@ -1051,6 +1135,11 @@ namespace VR33B
             {
                 return true;
             }
+            return false;
+        }
+
+        public bool OnTimeout()
+        {
             return false;
         }
 

@@ -152,7 +152,6 @@ namespace VR33B.UI
             else
             {
                 ViewModel.SerialRawDataReceived -= ViewModel_SerialRawDataReceived;
-
             }
 
         }
@@ -257,7 +256,7 @@ namespace VR33B.UI
                 _VR33BTerminal = value;
                 _VR33BTerminal.OnReceived += OnReceived;
                 _VR33BTerminal.OnSerialPortSent += OnSerialPortSent;
-                _VR33BTerminal.SerialPortRawDataReceived += SerialRawDataReceived;
+                _VR33BTerminal.SerialPortRawDataReceived += _VR33BTerminal_SerialPortRawDataReceived;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PortName"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
@@ -265,6 +264,12 @@ namespace VR33B.UI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
             }
         }
+
+        private void _VR33BTerminal_SerialPortRawDataReceived(object sender, byte[] e)
+        {
+            SerialRawDataReceived?.Invoke(sender, e);
+        }
+
         public SerialPort TerminalSerialPort
         {
             get

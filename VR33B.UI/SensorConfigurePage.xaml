@@ -47,10 +47,14 @@
                                 <ProgressBar x:Name="SamplingRateRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" Visibility="Collapsed" />
                             </Viewbox>
                             <TextBlock Grid.Column="3" Text="采样阈值：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <StackPanel Grid.Column="4" Orientation="Horizontal">
-                                <Slider x:Name="SamplingThresholdSlider" Maximum="100" Minimum="0"  Margin="0, 0, 10, 0" VerticalAlignment="Center" ValueChanged="SamplingThresholdSlider_ValueChanged" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                                <TextBlock x:Name="SamplingThresholdValueBlock" Text="0%" VerticalAlignment="Center"></TextBlock>
-                            </StackPanel>
+                            <Grid Grid.Column="4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="SamplingThresholdSlider" Grid.Column="0" Maximum="100" Minimum="0" Margin="5" VerticalAlignment="Center" ValueChanged="SamplingThresholdSlider_ValueChanged" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                                <TextBlock x:Name="SamplingThresholdValueBlock" Grid.Column="1" Text="0%" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            </Grid>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SamplingThresholdRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
@@ -134,9 +138,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Button x:Name="CalibrateXButton" Grid.Column="0" Content="校准X轴" Margin="5"/>
-                <Button x:Name="CalibrateYButton" Grid.Column="1" Content="校准Y轴" Margin="5"/>
-                <Button x:Name="CalibrateZButton" Grid.Column="2" Content="校准Z轴" Margin="5"/>
+                <Button x:Name="CalibrateXButton" Grid.Column="0" Content="校准X轴" Margin="5" Click="CalibrateXButton_Click"/>
+                <Button x:Name="CalibrateYButton" Grid.Column="1" Content="校准Y轴" Margin="5" Click="CalibrateYButton_Click"/>
+                <Button x:Name="CalibrateZButton" Grid.Column="2" Content="校准Z轴" Margin="5" Click="CalibrateZButton_Click"/>
             </Grid>
             <Grid>
                 <Grid.ColumnDefinitions>

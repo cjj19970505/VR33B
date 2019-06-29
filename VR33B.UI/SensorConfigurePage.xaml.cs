@@ -34,12 +34,6 @@ namespace VR33B.UI
         {
             SamplingThresholdValueBlock.Text = ((int)e.NewValue).ToString() + "%";
         }
-        /*
-        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-        {
-            SamplingThresholdSlider.Width = SamplingThresholdColumn.ActualWidth - SamplingThresholdValueBlock.ActualWidth - 15;
-        }
-        */
 
         private async void SamplingRateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -93,6 +87,21 @@ namespace VR33B.UI
                 await SettingViewModel.VR33BTerminal.StopSampleAsync();
             }
             
+        }
+
+        private async void CalibrateXButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = await SettingViewModel.VR33BTerminal.CalibrateX();
+        }
+
+        private async void CalibrateYButton_Click(object sender, RoutedEventArgs e)
+        {
+            await SettingViewModel.VR33BTerminal.CalibrateY();
+        }
+
+        private async void CalibrateZButton_Click(object sender, RoutedEventArgs e)
+        {
+            await SettingViewModel.VR33BTerminal.CalibrateZ();
         }
     }
 

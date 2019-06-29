@@ -71,16 +71,17 @@ namespace VR33B.UI
             ViewModel.DataGridItemSource.Clear();
 
             long minIndex = ViewModel.MinFilterIndex;
-            if (ViewModel.DataGridItemSource.Count > 0)
-            {
-                minIndex = Math.Max(ViewModel.MinFilterIndex, _LatestAddedToDataGridSampleValue.SampleIndex + 1);
-            }
 
             var indexFilteredSampleValues = await _VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(minIndex, ViewModel.MaxFilterIndex);
-            var filteredSampleValues = (from sampleValue in indexFilteredSampleValues
-                                        where _Filter(sampleValue)
-                                        select sampleValue).ToArray();
-            if (filteredSampleValues.Length > 0)
+            var filteredSampleValues = new List<VR33BSampleValue>();
+            foreach(var sampleValue in indexFilteredSampleValues)
+            {
+                if(await _FilterAsync(sampleValue))
+                {
+                    filteredSampleValues.Add(sampleValue);
+                }
+            }
+            if (filteredSampleValues.Count > 0)
             {
                 _LatestAddedToDataGridSampleValue = filteredSampleValues.Last();
 
@@ -92,18 +93,6 @@ namespace VR33B.UI
                     }
                 });
             }
-        }
-
-        private void UserControl_Loaded(object sender, RoutedEventArgs e)
-        {
-            _VR33BTerminal.VR33BSampleDataStorage.Updated += VR33BSampleDataStorage_Updated;
-            _LatestUpdataDataGridDateTime = DateTime.Now;
-        }
-
-        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
-        {
-            _VR33BTerminal.VR33BSampleDataStorage.Updated -= VR33BSampleDataStorage_Updated;
-            
         }
         private VR33BSampleValue _LatestAddedToDataGridSampleValue;
         private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
@@ -161,11 +150,64 @@ namespace VR33B.UI
 
         private bool _Filter(VR33BSampleValue sampleValue)
         {
+            bool indexRangeFilter = false;
             if(sampleValue.SampleIndex >= ViewModel.MinFilterIndex && sampleValue.SampleIndex <= ViewModel.MaxFilterIndex)
             {
-                return true;
+                indexRangeFilter = true;
             }
-            return false;
+            bool overLoadFilter = true;
+            if(sampleValue.SampleIndex < 3 && ViewModel.OverloadFilter)
+            {
+                overLoadFilter = false;
+            }
+            if(sampleValue.SampleIndex > 3 && ViewModel.OverloadFilter)
+            {
+                var queryTask = VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(sampleValue.SampleIndex - 2, sampleValue.SampleIndex - 1);
+                queryTask.Wait();
+                var result = queryTask.Result;
+                TimeSpan ts1 = result[1].SampleDateTime - result[0].SampleDateTime;
+                TimeSpan ts2 = sampleValue.SampleDateTime - result[1].SampleDateTime;
+                if(ts1.TotalMilliseconds > ts2.TotalMilliseconds*1.5)
+                {
+                    overLoadFilter = true;
+                }
+                else
+                {
+                    overLoadFilter = false;
+                }
+            }
+
+            return indexRangeFilter && overLoadFilter;
+        }
+
+        private async Task<bool> _FilterAsync(VR33BSampleValue sampleValue)
+        {
+            bool indexRangeFilter = false;
+            if (sampleValue.SampleIndex >= ViewModel.MinFilterIndex && sampleValue.SampleIndex <= ViewModel.MaxFilterIndex)
+            {
+                indexRangeFilter = true;
+            }
+            bool overLoadFilter = true;
+            if (sampleValue.SampleIndex < 3 && ViewModel.OverloadFilter)
+            {
+                overLoadFilter = false;
+            }
+            if (sampleValue.SampleIndex > 3 && ViewModel.OverloadFilter)
+            {
+                var result = await VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(sampleValue.SampleIndex - 2, sampleValue.SampleIndex - 1);
+                TimeSpan ts1 = result[1].SampleDateTime - result[0].SampleDateTime;
+                TimeSpan ts2 = sampleValue.SampleDateTime - result[1].SampleDateTime;
+                if (ts1.TotalMilliseconds > ts2.TotalMilliseconds * 1.5)
+                {
+                    overLoadFilter = true;
+                }
+                else
+                {
+                    overLoadFilter = false;
+                }
+            }
+
+            return indexRangeFilter && overLoadFilter;
         }
 
         private void SampleDataGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -195,6 +237,23 @@ namespace VR33B.UI
                 ViewModel.MaxFilterIndex = maxIndex;
             }
             FilterChanged?.Invoke(this, null);
+        }
+
+        private void OverloadCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            FilterChanged?.Invoke(this, null);
+        }
+
+        private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if((bool)e.NewValue)
+            {
+                _VR33BTerminal.VR33BSampleDataStorage.Updated += VR33BSampleDataStorage_Updated;
+            }
+            else
+            {
+                _VR33BTerminal.VR33BSampleDataStorage.Updated -= VR33BSampleDataStorage_Updated;
+            }
         }
     }
 
@@ -229,6 +288,19 @@ namespace VR33B.UI
             {
                 _MaxFilterIndex = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MaxFilterIndex"));
+            }
+        }
+        private bool _OverloadFilter;
+        public bool OverloadFilter
+        {
+            get
+            {
+                return _OverloadFilter;
+            }
+            set
+            {
+                _OverloadFilter = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OverloadFilter"));
             }
         }
         public VR33BSampleListControlViewModel()
