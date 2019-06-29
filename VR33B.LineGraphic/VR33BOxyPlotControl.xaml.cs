@@ -26,6 +26,7 @@ namespace VR33B.LineGraphic
     /// </summary>
     public partial class VR33BOxyPlotControl : UserControl, INotifyPropertyChanged
     {
+        public const string SettingFileName = "VR33BOxyPlotSetting.xml";
         public event PropertyChangedEventHandler PropertyChanged;
         public PlotModel OxyPlotModel { get; }
         public LineSeries XLineSeries { get; }
@@ -248,7 +249,7 @@ namespace VR33B.LineGraphic
                 BaseUpdateTimeSpan = TimeSpan.FromMilliseconds(15),
                 MaxUpdateTimeSpan = TimeSpan.FromMilliseconds(500)
             };
-            var fileName = "VR33BOxyPlotSetting.xml";
+            var fileName = SettingFileName;
             var filePath = Environment.CurrentDirectory + "//" + fileName;
             XmlSerializer serializer = new XmlSerializer(typeof(VR33BOxyPlotSetting));
             if(!File.Exists(filePath))
