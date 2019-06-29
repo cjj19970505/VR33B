@@ -46,17 +46,6 @@ namespace VR33B.UI
             InitializeComponent();
 
         }
-
-
-        /// <summary>
-        /// 窗口大小改变时要改变两个RichTextBlock的值
-        /// </summary>
-        /// <param name="sizeInfo"></param>
-        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-        {
-            ReceivedRawDataBox.Height = RowDataGrid.ActualHeight / 2 - 20 - ReceivedRawDataTitleBlock.ActualHeight - 10;
-            SentRawDataBox.Height = RowDataGrid.ActualHeight / 2 - 20 - SentRawDataTitleBlock.ActualHeight - 10;
-        }
         
         private void SwitchPortButton_Click(object sender, RoutedEventArgs e)
         {
@@ -382,7 +371,11 @@ namespace VR33B.UI
                 {
                     return;
                 }
-                SerialPort.StopBits = value;
+                if(value == StopBits.None)
+                {
+                    SerialPort.StopBits = StopBits.One;
+                }
+                
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StopBits"));
             }
         }

@@ -53,31 +53,23 @@
         <Grid x:Name="RowDataGrid" Grid.Column="2" Margin="10" IsEnabled="{Binding Path=CustomSerialPortOperation, Mode=OneWay}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"></RowDefinition>
+                <RowDefinition Height="4*"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
-                <RowDefinition Height="50"></RowDefinition>
+                <RowDefinition Height="4*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
             </Grid.RowDefinitions>
-            <StackPanel x:Name="ReceivedRawDataPanel" Grid.Row="0"
-                        VerticalAlignment="Stretch" Margin="0, 0, 0, 10">
-                <TextBlock x:Name="ReceivedRawDataTitleBlock" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
-                <TextBox x:Name="ReceivedRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Text="{Binding Path=ReceiveBoxText, Mode=TwoWay}"/>
-            </StackPanel>
-            <StackPanel x:Name="SentRawDataPanel" Grid.Row="1"
-                                    VerticalAlignment="Stretch">
-                <TextBlock x:Name="SentRawDataTitleBlock" Text="原始发送数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10" ></TextBlock>
-                <TextBox x:Name="SentRawDataBox" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding Path=SendBoxText, Mode=TwoWay}"/>
-            </StackPanel>
-            <StackPanel Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0, 5, 0, 0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SendBox" Grid.Column="0" BorderThickness="1" KeyDown="SendBox_KeyDown" PreviewTextInput="SendBox_PreviewTextInput" TextChanged="SendBox_TextChanged"/>
-                    <TextBox x:Name="CrcBox" Grid.Column="1" BorderThickness="1" IsReadOnly="True"/>
-                </Grid>
-                
-                
-            </StackPanel>
+            <TextBlock x:Name="ReceivedRawDataTitleBlock" Grid.Row="0" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
+            <TextBox x:Name="ReceivedRawDataBox" Grid.Row="1" VerticalAlignment="Stretch" Margin="5" BorderThickness="1" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Text="{Binding Path=ReceiveBoxText, Mode=TwoWay}"/>
+            <TextBlock x:Name="SentRawDataTitleBlock" Grid.Row="2" Text="原始发送数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10" ></TextBlock>
+            <TextBox x:Name="SentRawDataBox" Grid.Row="3" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding Path=SendBoxText, Mode=TwoWay}"/>
+            <Grid Grid.Row="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="SendBox" Grid.Column="0" BorderThickness="1" KeyDown="SendBox_KeyDown" PreviewTextInput="SendBox_PreviewTextInput" TextChanged="SendBox_TextChanged"/>
+                <TextBox x:Name="CrcBox" Grid.Column="1" BorderThickness="1" IsReadOnly="True"/>
+            </Grid>
         </Grid>
     </Grid>
 </Page>
