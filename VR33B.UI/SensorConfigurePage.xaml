@@ -126,55 +126,17 @@
                             <ProgressBar Visibility="Collapsed" x:Name="AccelerometerRangeProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                         </Viewbox>
                     </StackPanel>
-                    <StackPanel x:Name="AccelerometerZeroPointPanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
-                        <TextBlock Text="加速度零点：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                        <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                            <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AccelerometerZeroPointXBox" Width="30" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerZeroPointXProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                            <TextBlock Text="Y：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AccelerometerZeroPointYBox" Width="30" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerZeroPointYProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,  0, 10, 0">
-                            <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AccelerometerZeroPointZBox" Width="30" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerZeroPointZProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </StackPanel>
-                    </StackPanel>
-                    <StackPanel x:Name="AccelerometerSensibilityPanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
-                        <TextBlock Text="加速度灵敏度：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                        <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                            <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AccelerometerSensibilityXBox" Width="30" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerSensibilityXProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0, 0, 10, 0">
-                            <TextBlock Text="Y：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AccelerometerSensibilityYBox" Width="30" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerSensibilityYProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,  0, 10, 0">
-                            <TextBlock Text="X：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AccelerometerSensibilityZBox" Width="30" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="AccelerometerSensibilityZProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </StackPanel>
-                    </StackPanel>
                 </StackPanel>
+            </Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="CalibrateXButton" Grid.Column="0" Content="校准X轴" Margin="5"/>
+                <Button x:Name="CalibrateYButton" Grid.Column="1" Content="校准Y轴" Margin="5"/>
+                <Button x:Name="CalibrateZButton" Grid.Column="2" Content="校准Z轴" Margin="5"/>
             </Grid>
             <Grid>
                 <Grid.ColumnDefinitions>

@@ -31,6 +31,8 @@ namespace VR33B.UI
                 if(_VR33BTerminal == null)
                 {
                     _VR33BTerminal = new VR33BTerminal(new VR33BSqliteStorage(), false);
+                    (_VR33BTerminal.VR33BSampleDataStorage as VR33BSqliteStorage).SampleTimeDispatcher = new VR33BSampleTimeDispatcher(_VR33BTerminal);
+
                 }
                 return _VR33BTerminal;
             }

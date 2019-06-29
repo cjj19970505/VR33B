@@ -58,11 +58,18 @@
                 <RowDefinition Height="4*"></RowDefinition>
                 <RowDefinition Height="auto"></RowDefinition>
             </Grid.RowDefinitions>
-            <TextBlock x:Name="ReceivedRawDataTitleBlock" Grid.Row="0" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
-            <TextBox x:Name="ReceivedRawDataBox" Grid.Row="1" VerticalAlignment="Stretch" Margin="5" BorderThickness="1" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Text="{Binding Path=ReceiveBoxText, Mode=TwoWay}"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="ReceivedRawDataTitleBlock" Grid.Row="0" Grid.Column="0" Text="原始接收数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10"></TextBlock>
+            <Button x:Name="ClearReceiveBoxButton" Grid.Row="0" Grid.Column="1" Content="清除" Click="ClearReceiveBoxButton_Click"/>
+            <TextBox x:Name="ReceivedRawDataBox" Grid.Row="1" Grid.ColumnSpan="3" VerticalAlignment="Stretch" Margin="5" BorderThickness="1" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap" Text="{Binding Path=ReceiveBoxText, Mode=TwoWay}"/>
             <TextBlock x:Name="SentRawDataTitleBlock" Grid.Row="2" Text="原始发送数据" Style="{DynamicResource MaterialDesignTitleTextBlock}" Margin="0, 0, 0, 10" ></TextBlock>
-            <TextBox x:Name="SentRawDataBox" Grid.Row="3" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding Path=SendBoxText, Mode=TwoWay}"/>
-            <Grid Grid.Row="4">
+            <Button x:Name="ClearSendBoxButton" Grid.Row="2" Grid.Column="1" Content="清除" Click="ClearSendBoxButton_Click"/>
+            <TextBox x:Name="SentRawDataBox" Grid.Row="3" Grid.ColumnSpan="3" VerticalAlignment="Stretch" BorderThickness="1" VerticalScrollBarVisibility="Auto" IsReadOnly="True" TextWrapping="Wrap" Text="{Binding Path=SendBoxText, Mode=TwoWay}"/>
+            <Grid Grid.Row="4" Grid.ColumnSpan="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="*"/>

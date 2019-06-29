@@ -194,16 +194,13 @@ namespace VR33B.LineGraphic
                 }
 
                 int beforeDownsample = plotData.Count;
-                if (TrackingModeOn)
+                if (plotCount >= 2 * _MaxLoadedSampleCountInTracking)
                 {
-                    if (plotCount >= 2 * _MaxLoadedSampleCountInTracking)
-                    {
-                        int step = plotCount / _MaxLoadedSampleCountInTracking;
-                        plotData = (from sampleValue in plotData
-                                    where sampleValue.SampleIndex % step == 0
-                                    select sampleValue).ToList();
-                        plotCount = plotData.Count;
-                    }
+                    int step = plotCount / _MaxLoadedSampleCountInTracking;
+                    plotData = (from sampleValue in plotData
+                                where sampleValue.SampleIndex % step == 0
+                                select sampleValue).ToList();
+                    plotCount = plotData.Count;
                 }
                 int downSample = plotCount;
                 var xDataPoint = (from sampleValue in plotData

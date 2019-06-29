@@ -33,13 +33,30 @@ namespace VR33B.Storage
                 if (_VR33BTerminal != null)
                 {
                     _VR33BTerminal.OnVR33BSampleStarted -= _VR33BTerminal_OnVR33BSampleStarted;
-                    _VR33BTerminal.OnVR33BSampleValueReceived -= _VR33BTerminal_OnVR33BSampleValueReceived;
+                    //_VR33BTerminal.OnVR33BSampleValueReceived -= _VR33BTerminal_OnVR33BSampleValueReceived;
                     _VR33BTerminal.OnVR33BSampleEnded -= _VR33BTerminal_OnVR33BSampleEnded;
                 }
                 _VR33BTerminal = value;
                 _VR33BTerminal.OnVR33BSampleStarted += _VR33BTerminal_OnVR33BSampleStarted;
-                _VR33BTerminal.OnVR33BSampleValueReceived += _VR33BTerminal_OnVR33BSampleValueReceived;
+                //_VR33BTerminal.OnVR33BSampleValueReceived += _VR33BTerminal_OnVR33BSampleValueReceived;
                 _VR33BTerminal.OnVR33BSampleEnded += _VR33BTerminal_OnVR33BSampleEnded;
+            }
+        }
+        private VR33BSampleTimeDispatcher _SampleTimeDispatcher;
+        public VR33BSampleTimeDispatcher SampleTimeDispatcher
+        {
+            get
+            {
+                return _SampleTimeDispatcher;
+            }
+            set
+            {
+                if(_SampleTimeDispatcher != null)
+                {
+                    _SampleTimeDispatcher.OnSampleValueTimeDispatched -= _VR33BTerminal_OnVR33BSampleValueReceived;
+                }
+                _SampleTimeDispatcher = value;
+                _SampleTimeDispatcher.OnSampleValueTimeDispatched += _VR33BTerminal_OnVR33BSampleValueReceived;
             }
         }
 

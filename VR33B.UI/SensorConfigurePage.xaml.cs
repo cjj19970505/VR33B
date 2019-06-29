@@ -34,11 +34,12 @@ namespace VR33B.UI
         {
             SamplingThresholdValueBlock.Text = ((int)e.NewValue).ToString() + "%";
         }
-
+        /*
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             SamplingThresholdSlider.Width = SamplingThresholdColumn.ActualWidth - SamplingThresholdValueBlock.ActualWidth - 15;
         }
+        */
 
         private async void SamplingRateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {

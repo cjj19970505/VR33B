@@ -82,11 +82,17 @@ namespace VR33B
                     durationInMs = 1000;
                     break;
             }
-            byte[] xBytes = new byte[] { receiveData.Data[1], receiveData.Data[0] };
-            byte[] yBytes = new byte[] { receiveData.Data[3], receiveData.Data[2] };
-            byte[] zBytes = new byte[] { receiveData.Data[5], receiveData.Data[4] };
-            byte[] tBytes = new byte[] { receiveData.Data[7], receiveData.Data[6] };
-            byte[] hBytes = new byte[] { receiveData.Data[9], receiveData.Data[8] };
+            int month = receiveData.Data[2];
+            int day = receiveData.Data[3];
+            int hour = receiveData.Data[4];
+            int minute = receiveData.Data[5];
+            int second = receiveData.Data[6];
+            DateTime dateTime = new DateTime(2008, month, day, hour, minute, second);
+            byte[] xBytes = new byte[] { receiveData.Data[8], receiveData.Data[7] };
+            byte[] yBytes = new byte[] { receiveData.Data[10], receiveData.Data[9] };
+            byte[] zBytes = new byte[] { receiveData.Data[12], receiveData.Data[11] };
+            byte[] tBytes = new byte[] { receiveData.Data[14], receiveData.Data[13] };
+            byte[] hBytes = new byte[] { receiveData.Data[16], receiveData.Data[15] };
             UInt16 rawX = BitConverter.ToUInt16(xBytes, 0);
             UInt16 rawY = BitConverter.ToUInt16(yBytes, 0);
             UInt16 rawZ = BitConverter.ToUInt16(zBytes, 0);
@@ -96,7 +102,7 @@ namespace VR33B
             {
                 SampleProcessGuid = sampleProcess.Guid,
                 SampleIndex = index,
-                SampleDateTime = tempBaseDateTime.Add(new TimeSpan(0, 0, 0, 0, (int)(durationInMs * index))),
+                SampleDateTime = dateTime,
                 RawAccelerometerValue = (rawX, rawY, rawZ),
                 RawTemperature = rawT,
                 RawHumidity = rawH

@@ -93,7 +93,9 @@
     <Compile Include="IVR33BStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VR33B.cs" />
+    <Compile Include="VR33BCommand.cs" />
     <Compile Include="VR33BSampleProcess.cs" />
+    <Compile Include="VR33BSampleTimeDispatcher.cs" />
     <Compile Include="VR33BSetting.cs" />
     <Compile Include="VR33BValue.cs" />
   </ItemGroup>

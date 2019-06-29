@@ -29,7 +29,7 @@ namespace VR33B.UI
         {
             get
             {
-                return ViewModel.SerialPort;
+                return ViewModel.TerminalSerialPort;
             }
         }
         public TimeSpan _UpdateInterval
@@ -68,31 +68,6 @@ namespace VR33B.UI
 
         public delegate void OnStateChangedEventHandler(string stateMessage);
 
-        private async void ViewModel_OnSerialPortSent(object sender, VR33BSendData e)
-        {
-            var hexStringArray = from receiveByte in e.SendBytes
-                                 select string.Format("{0:x2}", receiveByte);
-            var hexString = string.Join(" ", hexStringArray) + Environment.NewLine;
-            await Dispatcher.InvokeAsync(() =>
-            {
-                SentRawDataBox.Text += hexString;
-            });
-        }
-
-        private void ViewModel_OnReceived(object sender, VR33BReceiveData e)
-        {
-            var hexStringArray = from receiveByte in e.RawByteArray
-                                 select string.Format("{0:x2}", receiveByte);
-            var hexString = string.Join(" ", hexStringArray);
-
-            if (DateTime.Now - _LatestUpdateReceiveBoxDateTime > _UpdateInterval)
-            {
-                _LatestUpdateReceiveBoxDateTime = DateTime.Now;
-                ViewModel.ReceiveBoxText += (" " + hexString);
-            }
-
-        }
-
         byte _HexStringToByte(string hexString)
         {
             byte hex = 0;
@@ -126,21 +101,26 @@ namespace VR33B.UI
             {
                 return;
             }
-            var text = (sender as TextBox).ToString();
-            var hexStrs = text.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            List<byte> hexList = new List<byte>();
-            foreach(var hexStr in hexStrs)
+            var hexSplitMatch = new Regex(@"\b[0-9a-hA-H]{1,2}\b");
+            var spliteResult = hexSplitMatch.Matches(SendBox.Text);
+            var hexList = new List<byte>();
+            foreach (var hexStr in spliteResult)
             {
-                hexList.Add(_HexStringToByte(hexStr));
+                hexList.Add(_HexStringToByte(((Match)hexStr).Value));
             }
+            hexList.AddRange(BitConverter.GetBytes(Crc16(hexList.ToArray())));
             byte[] byteArray = hexList.ToArray();
-            if(ViewModel.SerialPort.IsOpen)
+            var hexStringArray = from sendByte in byteArray
+                                 select string.Format("{0:x2}", sendByte);
+            var hexString = string.Join(" ", hexStringArray);
+            ViewModel.SendBoxText += (" " + hexString);
+            if (ViewModel.TerminalSerialPort.IsOpen)
             {
-                await ViewModel.SerialPort.BaseStream.WriteAsync(byteArray, 0, byteArray.Length);
+                await ViewModel.TerminalSerialPort.BaseStream.WriteAsync(byteArray, 0, byteArray.Length);
             }
             else
             {
-
+                
             }
         }
 
@@ -166,24 +146,20 @@ namespace VR33B.UI
                 {
                     ViewModel.AvaliablePortNames.Add(serialPortName);
                 }
-                ViewModel.SerialPortDataReceived += ViewModel_SerialPortDataReceived;
+                ViewModel.SerialRawDataReceived += ViewModel_SerialRawDataReceived;
                 SerialNoBox.SelectedValue = ViewModel.PortName;
             }
             else
             {
-                ViewModel.OnReceived -= ViewModel_OnReceived;
-                ViewModel.SerialPortDataReceived -= ViewModel_SerialPortDataReceived;
+                ViewModel.SerialRawDataReceived -= ViewModel_SerialRawDataReceived;
+
             }
 
         }
 
-        private void ViewModel_SerialPortDataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void ViewModel_SerialRawDataReceived(object sender, byte[] e)
         {
-            var serialPort = sender as SerialPort;
-            var stream = serialPort.BaseStream;
-            byte[] buffer = new byte[serialPort.BytesToRead];
-            stream.Read(buffer, 0, buffer.Length);
-
+            byte[] buffer = e;
             var hexStringArray = from receiveByte in buffer
                                  select string.Format("{0:x2}", receiveByte);
             var hexString = string.Join(" ", hexStringArray);
@@ -239,6 +215,16 @@ namespace VR33B.UI
             
 
         }
+
+        private void ClearReceiveBoxButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.ReceiveBoxText = "";
+        }
+
+        private void ClearSendBoxButton_Click(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SendBoxText = "";
+        }
     }
 
     public class SerialPortViewModel:INotifyPropertyChanged
@@ -249,6 +235,7 @@ namespace VR33B.UI
         public event EventHandler<VR33BReceiveData> OnReceived;
         public event EventHandler<VR33BSendData> OnSerialPortSent;
         public event SerialDataReceivedEventHandler SerialPortDataReceived;
+        public event EventHandler<byte[]> SerialRawDataReceived;
 
         public ObservableCollection<string> AvaliablePortNames { get; }
         public ObservableCollection<int> AvaliableBaudRate { get; }
@@ -263,12 +250,14 @@ namespace VR33B.UI
             {
                 if(_VR33BTerminal != null)
                 {
-
+                    _VR33BTerminal.OnReceived -= OnReceived;
+                    _VR33BTerminal.OnSerialPortSent -= OnSerialPortSent;
+                    _VR33BTerminal.SerialPortRawDataReceived -= SerialRawDataReceived;
                 }
                 _VR33BTerminal = value;
                 _VR33BTerminal.OnReceived += OnReceived;
                 _VR33BTerminal.OnSerialPortSent += OnSerialPortSent;
-                _VR33BTerminal.SerialPort.DataReceived += SerialPort_DataReceived;
+                _VR33BTerminal.SerialPortRawDataReceived += SerialRawDataReceived;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PortName"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
@@ -276,13 +265,7 @@ namespace VR33B.UI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
             }
         }
-
-        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
-        {
-            SerialPortDataReceived?.Invoke(sender, e);
-        }
-
-        public SerialPort SerialPort
+        public SerialPort TerminalSerialPort
         {
             get
             {
@@ -311,15 +294,15 @@ namespace VR33B.UI
         {
             get
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return "";
                 }
-                return SerialPort.PortName;
+                return TerminalSerialPort.PortName;
             }
             set
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return;
                 }
@@ -327,7 +310,7 @@ namespace VR33B.UI
                 {
                     return;
                 }
-                SerialPort.PortName = value;
+                TerminalSerialPort.PortName = value;
                 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PortName"));
             }
@@ -336,19 +319,19 @@ namespace VR33B.UI
         {
             get
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return 9600;
                 }
-                return SerialPort.BaudRate;
+                return TerminalSerialPort.BaudRate;
             }
             set
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return;
                 }
-                SerialPort.BaudRate = SerialPort.BaudRate;
+                TerminalSerialPort.BaudRate = TerminalSerialPort.BaudRate;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
             }
         }
@@ -356,19 +339,19 @@ namespace VR33B.UI
         {
             get
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return 0;
                 }
-                return SerialPort.DataBits;
+                return TerminalSerialPort.DataBits;
             }
             set
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return;
                 }
-                SerialPort.DataBits = value;
+                TerminalSerialPort.DataBits = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
             }
         }
@@ -384,21 +367,21 @@ namespace VR33B.UI
         {
             get
             {
-                if (SerialPort == null)
+                if (TerminalSerialPort == null)
                 {
                     return StopBits.None;
                 }
-                return SerialPort.StopBits;
+                return TerminalSerialPort.StopBits;
             }
             set
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return;
                 }
                 if(value == StopBits.None)
                 {
-                    SerialPort.StopBits = StopBits.One;
+                    TerminalSerialPort.StopBits = StopBits.One;
                 }
                 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StopBits"));
@@ -415,19 +398,19 @@ namespace VR33B.UI
         {
             get
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return Parity.None;
                 }
-                return SerialPort.Parity;
+                return TerminalSerialPort.Parity;
             }
             set
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return;
                 }
-                SerialPort.Parity = value;
+                TerminalSerialPort.Parity = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
             }
         }
@@ -436,11 +419,11 @@ namespace VR33B.UI
         {
             get
             {
-                if(SerialPort == null)
+                if(TerminalSerialPort == null)
                 {
                     return false;
                 }
-                return SerialPort.IsOpen;
+                return TerminalSerialPort.IsOpen;
             }
         }
 
@@ -474,12 +457,12 @@ namespace VR33B.UI
 
         public void Open()
         {
-            SerialPort.Open();
+            TerminalSerialPort.Open();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOpen"));
         }
         public void Close()
         {
-            SerialPort.Close();
+            TerminalSerialPort.Close();
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOpen"));
         }
         

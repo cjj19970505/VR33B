@@ -15,7 +15,6 @@ namespace VR33B
     public class VR33BTerminal
     {
         //public byte Address = 0xff;
-
         private SerialPort _SerialPort;
         public SerialPort SerialPort
         {
@@ -367,7 +366,7 @@ namespace VR33B
             //Check if is samplevalue data
             if(Sampling)
             {
-                if(e.ReadOrWrite == VR33BMessageType.Read && e.Data.Length == 10)
+                if(e.ReadOrWrite == VR33BMessageType.Read && e.Data.Length == 17)
                 {
 
                     VR33BSampleValue sampleValue = VR33BSampleValue.FromVR33BReceiveData(e, LatestSetting, _CurrentSampleIndex, _CurrentSampleProcess);
@@ -962,7 +961,7 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 10)
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 17)
             {
                 return true;
             }
