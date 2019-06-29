@@ -14,7 +14,7 @@ namespace VR33B
     public enum VR33BConnectionState { NotConnected, Connecting, Success, Failed}
     public class VR33BTerminal
     {
-        public byte Address = 0x02;
+        //public byte Address = 0xff;
 
         private SerialPort _SerialPort;
         public SerialPort SerialPort
@@ -53,6 +53,7 @@ namespace VR33B
         public event EventHandler OnVR33BSampleEnded;
 
         public event EventHandler<VR33BConnectionState> OnConnectonStateChanged;
+        public event EventHandler<byte[]> SerialPortRawDataReceived;
 
         public IVR33BStorage VR33BSampleDataStorage { get; }
 
@@ -74,6 +75,7 @@ namespace VR33B
         public VR33BTerminal(IVR33BStorage storage, bool useFakeSampleValueGenerator = false)
         {
             LatestSetting = new VR33BSetting();
+            LatestSetting.DeviceAddress = 0xff;
 
             _ReceivedBytesBuffer = new List<byte>();
             _ReceivedBytesBufferLock = new object();
@@ -122,13 +124,14 @@ namespace VR33B
             var stream = serialPort.BaseStream;
             byte[] buffer = new byte[serialPort.BytesToRead];
             stream.Read(buffer, 0, buffer.Length);
+            SerialPortRawDataReceived?.Invoke(this, buffer);
             lock (_ReceivedBytesBufferLock)
             {
                 _ReceivedBytesBuffer.AddRange(buffer);
                 while (_ReceivedBytesBuffer.Count > 0)
                 {
 
-                    int possibleMessageStartIndex = _ReceivedBytesBuffer.FindIndex(item => item == Address);
+                    int possibleMessageStartIndex = _ReceivedBytesBuffer.FindIndex(item => item == LatestSetting.DeviceAddress);
                     if (possibleMessageStartIndex < 0)
                     {
                         _ReceivedBytesBuffer.Clear();
@@ -406,6 +409,7 @@ namespace VR33B
 
         public async Task<(VR33BReadResult, byte)> ReadDeviceAddressAsync()
         {
+            LatestSetting.DeviceAddress = 0xff;
             var response = await SendCommandAsync(new ReadAddressCommand());
             if(response.Success)
             {
@@ -492,6 +496,7 @@ namespace VR33B
             {
                 return;
             }
+            LatestSetting.DeviceAddress = 0xff;
             ConnectionState = VR33BConnectionState.Connecting;
             OnConnectonStateChanged?.Invoke(this, ConnectionState);
             if(SerialPort.IsOpen)
@@ -785,7 +790,7 @@ namespace VR33B
                 RegisterAddress = 0x01,
                 Data = new byte[] { 0, 1 }
             };
-            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 500)) };
         }
     }
 

@@ -166,15 +166,33 @@ namespace VR33B.UI
                 {
                     ViewModel.AvaliablePortNames.Add(serialPortName);
                 }
-                ViewModel.OnReceived += ViewModel_OnReceived;
+                ViewModel.SerialPortDataReceived += ViewModel_SerialPortDataReceived;
                 SerialNoBox.SelectedValue = ViewModel.PortName;
             }
             else
             {
                 ViewModel.OnReceived -= ViewModel_OnReceived;
-                
+                ViewModel.SerialPortDataReceived -= ViewModel_SerialPortDataReceived;
             }
 
+        }
+
+        private void ViewModel_SerialPortDataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            var serialPort = sender as SerialPort;
+            var stream = serialPort.BaseStream;
+            byte[] buffer = new byte[serialPort.BytesToRead];
+            stream.Read(buffer, 0, buffer.Length);
+
+            var hexStringArray = from receiveByte in buffer
+                                 select string.Format("{0:x2}", receiveByte);
+            var hexString = string.Join(" ", hexStringArray);
+
+            if (DateTime.Now - _LatestUpdateReceiveBoxDateTime > _UpdateInterval)
+            {
+                _LatestUpdateReceiveBoxDateTime = DateTime.Now;
+                ViewModel.ReceiveBoxText += (" " + hexString);
+            }
         }
 
         private UInt16 Crc16(byte[] buf)
@@ -230,6 +248,7 @@ namespace VR33B.UI
 
         public event EventHandler<VR33BReceiveData> OnReceived;
         public event EventHandler<VR33BSendData> OnSerialPortSent;
+        public event SerialDataReceivedEventHandler SerialPortDataReceived;
 
         public ObservableCollection<string> AvaliablePortNames { get; }
         public ObservableCollection<int> AvaliableBaudRate { get; }
@@ -249,12 +268,18 @@ namespace VR33B.UI
                 _VR33BTerminal = value;
                 _VR33BTerminal.OnReceived += OnReceived;
                 _VR33BTerminal.OnSerialPortSent += OnSerialPortSent;
+                _VR33BTerminal.SerialPort.DataReceived += SerialPort_DataReceived;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PortName"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StopBits"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
             }
+        }
+
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            SerialPortDataReceived?.Invoke(sender, e);
         }
 
         public SerialPort SerialPort
