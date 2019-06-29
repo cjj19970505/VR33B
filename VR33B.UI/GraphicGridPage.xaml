@@ -13,7 +13,7 @@
     </Page.DataContext>
     <Grid x:Name="GraphicGrid" Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="GraphicImageColumn" Width="auto"/>
+            <ColumnDefinition x:Name="GraphicImageColumn" Width="500"/>
             <ColumnDefinition x:Name="SeparateColumn" Width="auto"/>
             <ColumnDefinition x:Name="GraphicDataColumn" Width="*"/>
         </Grid.ColumnDefinitions>
