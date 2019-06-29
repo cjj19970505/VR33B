@@ -4,6 +4,7 @@ using OxyPlot.Series;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Serialization;
 
 namespace VR33B.LineGraphic
 {
@@ -56,6 +58,8 @@ namespace VR33B.LineGraphic
                 //_VR33BTerminal.OnVR33BSampleValueReceived += VR33BSampleDataStorage_Updated;
             }
         }
+
+        public VR33BOxyPlotSetting Setting { get; }
 
         private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
         {
@@ -117,12 +121,12 @@ namespace VR33B.LineGraphic
             get
             {
                 //return new TimeSpan(0, 0, 0, 0, 200);
-                if(_LatestPlotTimeSpan.TotalMilliseconds >= 1)
+                if (_LatestPlotTimeSpan.TotalMilliseconds >= 1)
                 {
                     System.Diagnostics.Debug.WriteLine(_LatestPlotTimeSpan.TotalMilliseconds);
                 }
                 var possibleInterval = new TimeSpan(0, 0, 0, 0, 15) + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 150);
-                if(possibleInterval < TimeSpan.FromMilliseconds(500))
+                if (possibleInterval < TimeSpan.FromMilliseconds(500))
                 {
                     return possibleInterval;
                 }
@@ -130,7 +134,7 @@ namespace VR33B.LineGraphic
                 {
                     return TimeSpan.FromMilliseconds(500);
                 }
-                
+
             }
         }
 
@@ -148,7 +152,7 @@ namespace VR33B.LineGraphic
                 Inited = true;
                 _FirstSampleDateTime = e.SampleDateTime;
             }
-            if(!_Visible)
+            if (!_Visible)
             {
                 return;
             }
@@ -165,7 +169,7 @@ namespace VR33B.LineGraphic
                     await _ReplotAsync();
                     _TrackingModeReploting = false;
                 }
-                
+
             }
         }
         private Guid _LatestReplotGuid;
@@ -180,14 +184,14 @@ namespace VR33B.LineGraphic
             _LoadedRangeTimeSpan = (TimeSpanAxis.ToTimeSpan(loadedLeft), TimeSpanAxis.ToTimeSpan(loadedRight));
             return Task.Run(async () =>
             {
-                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRangeAsync(_FirstSampleDateTime.Add( TimeSpanAxis.ToTimeSpan(loadedLeft)), _FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(loadedRight)));
-                
+                var plotData = await VR33BTerminal.VR33BSampleDataStorage.GetFromDateTimeRangeAsync(_FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(loadedLeft)), _FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(loadedRight)));
+
                 var plotCount = plotData.Count;
-                if(plotCount == 0)
+                if (plotCount == 0)
                 {
                     return;
                 }
-                
+
                 int beforeDownsample = plotData.Count;
                 if (TrackingModeOn)
                 {
@@ -207,22 +211,22 @@ namespace VR33B.LineGraphic
                                   select new DataPoint(TimeSpanAxis.ToDouble(sampleValue.SampleDateTime - _FirstSampleDateTime), sampleValue.AccelerometerValue.Y)).ToList();
                 var zDataPoint = (from sampleValue in plotData
                                   select new DataPoint(TimeSpanAxis.ToDouble(sampleValue.SampleDateTime - _FirstSampleDateTime), sampleValue.AccelerometerValue.Z)).ToList();
-                if(_LatestReplotGuid == replotGuid)
+                if (_LatestReplotGuid == replotGuid)
                 {
                     XLineSeries.ItemsSource = xDataPoint;
                     YLineSeries.ItemsSource = yDataPoint;
                     ZLineSeries.ItemsSource = zDataPoint;
-                    
+
                     if (TrackingModeOn)
                     {
                         double latestProgress = 0.5;
-                        if (_LoadedSampleValues!=null && _LoadedSampleValues.Length > 0)
+                        if (_LoadedSampleValues != null && _LoadedSampleValues.Length > 0)
                         {
                             //latestProgress = TimeSpanAxis.ToDouble((_LoadedSampleValues.Last().SampleDateTime - _FirstSampleDateTime)) / (_LatestPlotAxisActualMinMax.ActualMinimum - _LatestPlotAxisActualMinMax.ActualMaximum);
                         }
-                        
+
                         TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * latestProgress + _LatestPlotAxisActualMinMax.ActualMinimum) - TimeSpanAxis.ToDouble(plotData.Last().SampleDateTime - _FirstSampleDateTime)) * TimeSpanPlotAxis.Scale);
-                        
+
                     }
                     _LoadedSampleValues = plotData.ToArray();
                     OxyPlotView.InvalidatePlot();
@@ -235,6 +239,23 @@ namespace VR33B.LineGraphic
         public VR33BOxyPlotControl()
         {
             InitializeComponent();
+            var defaultSetting = new VR33BOxyPlotSetting()
+            {
+                ReloadRangeAndLoadedRangeRatio = 0.1,
+                LoadedRangeAndDisplayRangeRatio = 3,
+                MinDisplayRangeAndLoadedRangeRatio = 0.1,
+                MaxLoadedSampleCountInTracking = 1000,
+                BaseUpdateTimeSpan = TimeSpan.FromMilliseconds(15),
+                MaxUpdateTimeSpan = TimeSpan.FromMilliseconds(500)
+            };
+            var fileName = "VR33BOxyPlotSetting.xml";
+            XmlSerializer writer = new XmlSerializer(typeof(VR33BOxyPlotSetting));
+            var filePath = Environment.CurrentDirectory + "//" + fileName;
+            using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                writer.Serialize(settingStream, defaultSetting);
+            };
+
             DataContext = this;
             _Visible = Visibility == Visibility.Visible;
             OxyPlotModel = new PlotModel();
@@ -288,7 +309,7 @@ namespace VR33B.LineGraphic
         private void VR33BOxyPlotControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             _Visible = (bool)e.NewValue;
-            if(!_Visible)
+            if (!_Visible)
             {
                 OxyPlotView.IsEnabled = false;
             }
@@ -316,20 +337,20 @@ namespace VR33B.LineGraphic
             {
                 return;
             }
-            
+
             if (TrackingModeOn && VR33BTerminal.Sampling)
             {
                 return;
             }
-            if(TimeSpanAxis.ToTimeSpan(TimeSpanPlotAxis.ActualMinimum) < _LoadedRangeTimeSpan.Left || TimeSpanAxis.ToTimeSpan(TimeSpanPlotAxis.ActualMaximum) > _LoadedRangeTimeSpan.Right)
+            if (TimeSpanAxis.ToTimeSpan(TimeSpanPlotAxis.ActualMinimum) < _LoadedRangeTimeSpan.Left || TimeSpanAxis.ToTimeSpan(TimeSpanPlotAxis.ActualMaximum) > _LoadedRangeTimeSpan.Right)
             {
-                
+
                 await _ReplotAsync();
             }
             else
             {
                 var displayRangeAndLoadedRangeRatio = (TimeSpanPlotAxis.ActualMaximum - TimeSpanPlotAxis.ActualMinimum) / TimeSpanAxis.ToDouble(_LoadedRangeTimeSpan.Right - _LoadedRangeTimeSpan.Left);
-                if(displayRangeAndLoadedRangeRatio < _MinDisplayRangeAndLoadedRangeRatio)
+                if (displayRangeAndLoadedRangeRatio < _MinDisplayRangeAndLoadedRangeRatio)
                 {
                     await _ReplotAsync();
                 }
@@ -358,8 +379,34 @@ namespace VR33B.LineGraphic
         public double LoadedRangeAndDisplayRangeRatio { get; set; }
         public double MinDisplayRangeAndLoadedRangeRatio { get; set; }
         public int MaxLoadedSampleCountInTracking { get; set; }
+        [XmlIgnore]
         public TimeSpan BaseUpdateTimeSpan { get; set; }
+        [XmlIgnore]
         public TimeSpan MaxUpdateTimeSpan { get; set; }
+
+        public double BaseUpdateTimeSpanInMS
+        {
+            get
+            {
+                return BaseUpdateTimeSpan.TotalMilliseconds;
+            }
+            set
+            {
+                BaseUpdateTimeSpan = TimeSpan.FromMilliseconds(value);
+            }
+        }
+
+        public double MaxUpdateTimeSpanInMs
+        {
+            get
+            {
+                return MaxUpdateTimeSpan.TotalMilliseconds;
+            }
+            set
+            {
+                MaxUpdateTimeSpan = TimeSpan.FromMilliseconds(value);
+            }
+        }
     }
 
 
