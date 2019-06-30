@@ -162,7 +162,6 @@ namespace VR33B.LineGraphic
                 else
                 {
                     _TrackingModeReploting = true;
-                    System.Diagnostics.Debug.WriteLine("REPLOT!");
                     await _ReplotAsync();
                     _TrackingModeReploting = false;
                 }

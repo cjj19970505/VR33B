@@ -82,6 +82,7 @@ namespace VR33B.Storage
             {
                 _DataContextLock.EnterWriteLock();
                 {
+                    
                     _InMemoryBufferLock.EnterWriteLock();
                     {
                         _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
@@ -90,6 +91,7 @@ namespace VR33B.Storage
                     _InMemoryBufferLock.ExitWriteLock();
 
                     _DataContext.SaveChanges();
+                    
                 }
                 _DataContextLock.ExitWriteLock();
             });
@@ -121,9 +123,12 @@ namespace VR33B.Storage
                     {
                         _DataContextLock.EnterWriteLock();
                         {
+                            DateTime beginTimingDateTime = DateTime.Now;
+                            System.Diagnostics.Debug.WriteLine("BEGIN MOVING MEMORY TO DB");
                             _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
                             _InMemoryBuffer.Clear();
                             _DataContext.SaveChanges();
+                            System.Diagnostics.Debug.WriteLine("MOVE MEMORY TO DB TAKES " + (DateTime.Now - beginTimingDateTime).TotalMilliseconds + "Ms");
                         }
                         _DataContextLock.ExitWriteLock();
                     }
@@ -180,16 +185,19 @@ namespace VR33B.Storage
 
                 if (inDatabaseQueryNeeded)
                 {
-                    _DataContextLock.EnterReadLock();
+                    using (VR33BSqliteStorageContext dbcontext = new VR33BSqliteStorageContext())
                     {
-                        
-                        inDatabaseQueryResult.AddRange(
-                            (from entity in _DataContext.SampleValueEntities
-                             where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime && entity.SampleProcessGuid == _CurrentSampleProcess.Guid
-                             select entity.ToStruct()).ToList()
-                            );
+                        _DataContextLock.EnterReadLock();
+                        {
+
+                            inDatabaseQueryResult.AddRange(
+                                (from entity in dbcontext.SampleValueEntities
+                                 where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime && entity.SampleProcessGuid == _CurrentSampleProcess.Guid
+                                 select entity.ToStruct()).ToList()
+                                );
+                        }
+                        _DataContextLock.ExitReadLock();
                     }
-                    _DataContextLock.ExitReadLock();
                     inDatabaseQueryResult.Sort((value1, value2) =>
                         {
                             if (value1.SampleIndex < value2.SampleIndex)
@@ -256,13 +264,16 @@ namespace VR33B.Storage
 
                 if (inDatabaseQueryNeeded)
                 {
-                    _DataContextLock.EnterReadLock();
+                    using(var dbcontext = new VR33BSqliteStorageContext())
                     {
-                        inDatabaseQueryResult.AddRange((from entity in _DataContext.SampleValueEntities
-                                                        where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
-                                                        select entity.ToStruct()).ToList());
+                        _DataContextLock.EnterReadLock();
+                        {
+                            inDatabaseQueryResult.AddRange((from entity in dbcontext.SampleValueEntities
+                                                            where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
+                                                            select entity.ToStruct()).ToList());
+                        }
+                        _DataContextLock.ExitReadLock();
                     }
-                    _DataContextLock.ExitReadLock();
                     inDatabaseQueryResult.Sort((value1, value2) =>
                     {
                         if (value1.SampleIndex < value2.SampleIndex)
@@ -300,6 +311,7 @@ namespace VR33B.Storage
             {
                 Database.EnsureDeleted();
                 Database.EnsureCreated();
+                _Created = true;
             }
             //SampleValueEntities.OrderBy
         }
