@@ -97,21 +97,21 @@ namespace VR33B.LineGraphic
         /// 由于太麻烦了这个现在还没弄
         /// 现在的效果就是这个值等于0
         /// </summary>
-        private double _ReloadRangeAndLoadedRangeRatio = 0.1;
+        //private double _ReloadRangeAndLoadedRangeRatio = 0.1;
         /// <summary>
         /// 看笔记
         /// </summary>
-        private double _LoadedRangeAndDisplayRangeRatio = 3;
+        //private double _LoadedRangeAndDisplayRangeRatio = 3;
         /// <summary>
         /// 看笔记
         /// </summary>
-        private double _MinDisplayRangeAndLoadedRangeRatio = 0.1;
+        //private double _MinDisplayRangeAndLoadedRangeRatio = 0.1;
 
         /// <summary>
         /// 这个数值表示在TrackingMode时在载入区域中最多的采样点
         /// 处于TrackingMode时数据不断加载，因此减少采样量以达到流畅
         /// </summary>
-        private int _MaxLoadedSampleCountInTracking = 1000;
+        //private int _MaxLoadedSampleCountInTracking = 1000;
 
         private (TimeSpan Left, TimeSpan Right) _LoadedRangeTimeSpan;
 
@@ -121,8 +121,8 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                var possibleInterval = new TimeSpan(0, 0, 0, 0, 15) + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 150);
-                if (possibleInterval < TimeSpan.FromMilliseconds(500))
+                var possibleInterval = Setting.BaseUpdateTimeSpan + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 150);
+                if (possibleInterval < Setting.MaxUpdateTimeSpan)
                 {
                     return possibleInterval;
                 }
@@ -173,7 +173,8 @@ namespace VR33B.LineGraphic
         {
             var replotGuid = _LatestReplotGuid = Guid.NewGuid();
             double displayRange = _LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum;
-            double newHalfLoadedRange = _LoadedRangeAndDisplayRangeRatio / 2 * displayRange;
+            //double newHalfLoadedRange = _LoadedRangeAndDisplayRangeRatio / 2 * displayRange;
+            double newHalfLoadedRange = Setting.LoadedRangeAndDisplayRangeRatio / 2 * displayRange;
             double displayMid = (_LatestPlotAxisActualMinMax.ActualMaximum + _LatestPlotAxisActualMinMax.ActualMinimum) / 2;
             double loadedLeft = displayMid - newHalfLoadedRange;
             double loadedRight = displayMid + newHalfLoadedRange;
@@ -189,9 +190,9 @@ namespace VR33B.LineGraphic
                 }
 
                 int beforeDownsample = plotData.Count;
-                if (plotCount >= 2 * _MaxLoadedSampleCountInTracking)
+                if (plotCount >= 2 * Setting.MaxLoadedSampleCountInTracking)
                 {
-                    int step = plotCount / _MaxLoadedSampleCountInTracking;
+                    int step = plotCount / Setting.MaxLoadedSampleCountInTracking;
                     plotData = (from sampleValue in plotData
                                 where sampleValue.SampleIndex % step == 0
                                 select sampleValue).ToList();
@@ -354,7 +355,7 @@ namespace VR33B.LineGraphic
             else
             {
                 var displayRangeAndLoadedRangeRatio = (TimeSpanPlotAxis.ActualMaximum - TimeSpanPlotAxis.ActualMinimum) / TimeSpanAxis.ToDouble(_LoadedRangeTimeSpan.Right - _LoadedRangeTimeSpan.Left);
-                if (displayRangeAndLoadedRangeRatio < _MinDisplayRangeAndLoadedRangeRatio)
+                if (displayRangeAndLoadedRangeRatio < Setting.MinDisplayRangeAndLoadedRangeRatio)
                 {
                     await _ReplotAsync();
                 }
