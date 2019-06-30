@@ -89,13 +89,20 @@ namespace VR33B.Storage
                 }
             });
         }
-
+        private DateTime _LatestMoveBufferToMemoryDateTime = DateTime.Now;
+        private TimeSpan _UpdateTimeInterval = new TimeSpan(0, 0, 0, 0, 1000);
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
             lock(_BeforeStoreBufferLock)
             {
                 _BeforeStoreBuffer.Add(VR33BSampleValueEntity.FromStruct(e));
             }
+            DateTime now = DateTime.Now;
+            if (now - _LatestMoveBufferToMemoryDateTime < _UpdateTimeInterval)
+            {
+                return;
+            }
+            _LatestMoveBufferToMemoryDateTime = now;
             await Task.Run(() =>
             {
                 lock (_InMemoryBufferLock)
