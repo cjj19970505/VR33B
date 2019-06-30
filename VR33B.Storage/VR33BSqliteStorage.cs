@@ -19,8 +19,8 @@ namespace VR33B.Storage
         private List<VR33BSampleValueEntity> _BeforeStoreBuffer;
 
         private int _InMemoryBufferSize = 1000;
-        private object _InMemoryBufferLock;
-        private List<VR33BSampleValueEntity> _InMemoryBuffer; 
+        private ReaderWriterLockSlim _InMemoryBufferLock;
+        private List<VR33BSampleValueEntity> _InMemoryBuffer;
 
         public VR33BTerminal VR33BTerminal
         {
@@ -43,6 +43,9 @@ namespace VR33B.Storage
             }
         }
         private VR33BSampleTimeDispatcher _SampleTimeDispatcher;
+
+        private ReaderWriterLockSlim _DataContextLock;
+        private VR33BSqliteStorageContext _DataContext;
         public VR33BSampleTimeDispatcher SampleTimeDispatcher
         {
             get
@@ -51,7 +54,7 @@ namespace VR33B.Storage
             }
             set
             {
-                if(_SampleTimeDispatcher != null)
+                if (_SampleTimeDispatcher != null)
                 {
                     _SampleTimeDispatcher.OnSampleValueTimeDispatched -= _VR33BTerminal_OnVR33BSampleValueReceived;
                 }
@@ -60,8 +63,7 @@ namespace VR33B.Storage
             }
         }
 
-        private object _DataContextLock;
-        private VR33BSqliteStorageContext _DataContext;
+
 
         public VR33BSqliteStorage()
         {
@@ -69,8 +71,8 @@ namespace VR33B.Storage
             _BeforeStoreBuffer = new List<VR33BSampleValueEntity>();
             _InMemoryBuffer = new List<VR33BSampleValueEntity>();
             _BeforeStoreBufferLock = new object();
-            _DataContextLock = new object();
-            _InMemoryBufferLock = new object();
+            _DataContextLock = new ReaderWriterLockSlim();
+            _InMemoryBufferLock = new ReaderWriterLockSlim();
 
         }
 
@@ -78,22 +80,25 @@ namespace VR33B.Storage
         {
             Task.Run(() =>
             {
-                lock(_DataContextLock)
+                _DataContextLock.EnterWriteLock();
                 {
-                    lock (_InMemoryBufferLock)
+                    _InMemoryBufferLock.EnterWriteLock();
                     {
                         _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
                         _InMemoryBuffer.Clear();
                     }
+                    _InMemoryBufferLock.ExitWriteLock();
+
                     _DataContext.SaveChanges();
                 }
+                _DataContextLock.ExitWriteLock();
             });
         }
         private DateTime _LatestMoveBufferToMemoryDateTime = DateTime.Now;
-        private TimeSpan _UpdateTimeInterval = new TimeSpan(0, 0, 0, 0, 1000);
+        private TimeSpan _UpdateTimeInterval = new TimeSpan(0, 0, 0, 0, 0);
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
-            lock(_BeforeStoreBufferLock)
+            lock (_BeforeStoreBufferLock)
             {
                 _BeforeStoreBuffer.Add(VR33BSampleValueEntity.FromStruct(e));
             }
@@ -105,27 +110,30 @@ namespace VR33B.Storage
             _LatestMoveBufferToMemoryDateTime = now;
             await Task.Run(() =>
             {
-                lock (_InMemoryBufferLock)
+                _InMemoryBufferLock.EnterWriteLock();
                 {
                     lock (_BeforeStoreBufferLock)
                     {
                         _InMemoryBuffer.AddRange(_BeforeStoreBuffer);
                         _BeforeStoreBuffer.Clear();
                     }
-                    if(_InMemoryBuffer.Count > _InMemoryBufferSize)
+                    if (_InMemoryBuffer.Count > _InMemoryBufferSize)
                     {
-                        lock(_DataContextLock)
+                        _DataContextLock.EnterWriteLock();
                         {
                             _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
                             _InMemoryBuffer.Clear();
                             _DataContext.SaveChanges();
                         }
+                        _DataContextLock.ExitWriteLock();
                     }
                 }
+                _InMemoryBufferLock.ExitWriteLock();
+
                 Updated?.Invoke(this, e);
             });
 
-            
+
             //throw new NotImplementedException();
         }
 
@@ -134,11 +142,12 @@ namespace VR33B.Storage
             _CurrentSampleProcess = e;
             Task.Run(() =>
             {
-                lock (_DataContextLock)
+                _DataContextLock.EnterWriteLock();
                 {
                     _DataContext.SampleProcessEntities.Add(VR33BSampleProcessEntity.FromStruct(_CurrentSampleProcess));
                     _DataContext.SaveChanges();
                 }
+                _DataContextLock.ExitWriteLock();
             });
         }
 
@@ -151,11 +160,12 @@ namespace VR33B.Storage
                 List<VR33BSampleValue> inMemoryQueryResult = new List<VR33BSampleValue>();
                 List<VR33BSampleValue> inDatabaseQueryResult = new List<VR33BSampleValue>();
                 bool inDatabaseQueryNeeded = true;
-                lock (_InMemoryBufferLock)
+
+                _InMemoryBufferLock.EnterReadLock();
                 {
                     if (_InMemoryBuffer.Count != 0)
                     {
-                        if(startDateTime > _InMemoryBuffer.First().SampleDateTime /*&& endDateTime <= _InMemoryBuffer.Last().SampleDateTime*/)
+                        if (startDateTime > _InMemoryBuffer.First().SampleDateTime /*&& endDateTime <= _InMemoryBuffer.Last().SampleDateTime*/)
                         {
                             inDatabaseQueryNeeded = false;
                         }
@@ -166,16 +176,21 @@ namespace VR33B.Storage
                             );
                     }
                 }
-                if(inDatabaseQueryNeeded)
+                _InMemoryBufferLock.ExitReadLock();
+
+                if (inDatabaseQueryNeeded)
                 {
-                    lock(_DataContextLock)
+                    _DataContextLock.EnterReadLock();
                     {
+                        
                         inDatabaseQueryResult.AddRange(
                             (from entity in _DataContext.SampleValueEntities
                              where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime && entity.SampleProcessGuid == _CurrentSampleProcess.Guid
                              select entity.ToStruct()).ToList()
                             );
-                        inDatabaseQueryResult.Sort((value1, value2) =>
+                    }
+                    _DataContextLock.ExitReadLock();
+                    inDatabaseQueryResult.Sort((value1, value2) =>
                         {
                             if (value1.SampleIndex < value2.SampleIndex)
                             {
@@ -191,13 +206,13 @@ namespace VR33B.Storage
                             }
 
                         });
-                    }
+
                 }
                 var list = new List<VR33BSampleValue>();
                 list.AddRange(inDatabaseQueryResult);
                 list.AddRange(inMemoryQueryResult);
                 return list;
-                
+
             });
         }
 
@@ -208,11 +223,11 @@ namespace VR33B.Storage
                 List<VR33BSampleValue> inMemoryQueryResult = new List<VR33BSampleValue>();
                 List<VR33BSampleValue> inDatabaseQueryResult = new List<VR33BSampleValue>();
                 bool inDatabaseQueryNeeded = true;
-                lock (_InMemoryBufferLock)
+                _InMemoryBufferLock.EnterReadLock();
                 {
-                    if(_InMemoryBuffer.Count > 0)
+                    if (_InMemoryBuffer.Count > 0)
                     {
-                        if(minIndex >= _InMemoryBuffer.First().SampleIndex && maxIndex <= _InMemoryBuffer.Last().SampleIndex)
+                        if (minIndex >= _InMemoryBuffer.First().SampleIndex && maxIndex <= _InMemoryBuffer.Last().SampleIndex)
                         {
                             inDatabaseQueryNeeded = false;
                         }
@@ -237,30 +252,34 @@ namespace VR33B.Storage
                         });
                     }
                 }
-                if(inDatabaseQueryNeeded)
+                _InMemoryBufferLock.ExitReadLock();
+
+                if (inDatabaseQueryNeeded)
                 {
-                    lock(_DataContextLock)
+                    _DataContextLock.EnterReadLock();
                     {
                         inDatabaseQueryResult.AddRange((from entity in _DataContext.SampleValueEntities
-                                                   where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
-                                                   select entity.ToStruct()).ToList());
-                        inDatabaseQueryResult.Sort((value1, value2) =>
-                        {
-                            if (value1.SampleIndex < value2.SampleIndex)
-                            {
-                                return -1;
-                            }
-                            else if (value1.SampleIndex == value2.SampleIndex)
-                            {
-                                return 0;
-                            }
-                            else
-                            {
-                                return 1;
-                            }
-
-                        });
+                                                        where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
+                                                        select entity.ToStruct()).ToList());
                     }
+                    _DataContextLock.ExitReadLock();
+                    inDatabaseQueryResult.Sort((value1, value2) =>
+                    {
+                        if (value1.SampleIndex < value2.SampleIndex)
+                        {
+                            return -1;
+                        }
+                        else if (value1.SampleIndex == value2.SampleIndex)
+                        {
+                            return 0;
+                        }
+                        else
+                        {
+                            return 1;
+                        }
+
+                    });
+
                 }
                 var list = new List<VR33BSampleValue>();
                 list.AddRange(inDatabaseQueryResult);

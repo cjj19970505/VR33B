@@ -48,6 +48,33 @@ namespace VR33B
         
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
+            DateTime baseDateTime = new DateTime(2008, 5, 5, 5, 5, 5);
+            double frequency = 1;
+            switch(VR33BTerminal.LatestSetting.SampleFrequence)
+            {
+                case VR33BSampleFrequence._1Hz:
+                    frequency = 1;
+                    break;
+                case VR33BSampleFrequence._5Hz:
+                    frequency = 5;
+                    break;
+                case VR33BSampleFrequence._20Hz:
+                    frequency = 20;
+                    break;
+                case VR33BSampleFrequence._50Hz:
+                    frequency = 50;
+                    break;
+                case VR33BSampleFrequence._100Hz:
+                    frequency = 100;
+                    break;
+                case VR33BSampleFrequence._200Hz:
+                    frequency = 200;
+                    break;
+            }
+            var sampleValue2 = e;
+            sampleValue2.SampleDateTime = baseDateTime.AddSeconds((1.0 / frequency) * e.SampleIndex);
+            OnSampleValueTimeDispatched?.Invoke(this, sampleValue2);
+            return;
             if(e.SampleIndex == 0)
             {
                 _LatestAssignedSampleDateTimeSampleValue = e;
