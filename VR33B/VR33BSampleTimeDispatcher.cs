@@ -32,9 +32,8 @@ namespace VR33B
         private object _SampleValuesBufferLock;
         private List<VR33BSampleValue> _SampleValuesBuffer;
 
-
-
-
+        private VR33BSampleValue _LatestAssignedSampleDateTimeSampleValue;
+        
         /// <summary>
         /// 请不要在这里阻塞求你们了
         /// </summary>
@@ -46,9 +45,13 @@ namespace VR33B
             _SampleValuesBufferLock = new object();
             _SampleValuesBuffer = new List<VR33BSampleValue>();
         }
-
+        
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
+            if(e.SampleIndex == 0)
+            {
+                _LatestAssignedSampleDateTimeSampleValue = e;
+            }
             //OnSampleValueTimeDispatched?.Invoke(this, e);
             //return;
             lock (_SampleValuesBufferLock)
@@ -75,7 +78,9 @@ namespace VR33B
                 {
                     var sampleValue = sameSecondSampleValues[i];
                     sampleValue.SampleDateTime = firstInCurrentSecond.SampleDateTime.AddMilliseconds((sampleValue.SampleIndex - firstInCurrentSecond.SampleIndex) * addTimeSpanInMs);
+                    sampleValue.SampleTimeSpanInMs = (sampleValue.SampleDateTime - _LatestAssignedSampleDateTimeSampleValue.SampleDateTime).TotalMilliseconds;
                     sameSecondSampleValues[i] = sampleValue;
+                    _LatestAssignedSampleDateTimeSampleValue = sampleValue;
                 }
 
                 for(int i = 1; i < sameSecondSampleValues.Count; i++)

@@ -51,6 +51,7 @@
                 <DataGridTextColumn Header="加速度" Binding="{Binding Path=AccelerometerValue}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
                 <DataGridTextColumn Header="温度" Binding="{Binding Path=Temperature}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
                 <DataGridTextColumn Header="湿度" Binding="{Binding Path=Humidity}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
+                <DataGridTextColumn Header="采样时间间隔" Binding="{Binding Path=SampleTimeSpanInMs}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

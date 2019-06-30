@@ -299,6 +299,8 @@ namespace VR33B.Storage
         public UInt16 RawTemperature { get; set; }
         public UInt16 RawHumidity { get; set; }
 
+        public double SampleTimeSpanInMs { get; set; }
+
         public static VR33BSampleValueEntity FromStruct(VR33BSampleValue vr33bSampleValue)
         {
             return new VR33BSampleValueEntity
@@ -310,7 +312,8 @@ namespace VR33B.Storage
                 RawAccelerometerValueY = vr33bSampleValue.RawAccelerometerValue.Y,
                 RawAccelerometerValueZ = vr33bSampleValue.RawAccelerometerValue.Z,
                 RawTemperature = vr33bSampleValue.RawTemperature,
-                RawHumidity = vr33bSampleValue.RawHumidity
+                RawHumidity = vr33bSampleValue.RawHumidity,
+                SampleTimeSpanInMs = vr33bSampleValue.SampleTimeSpanInMs
             };
         }
 
@@ -322,7 +325,8 @@ namespace VR33B.Storage
                 SampleDateTime = this.SampleDateTime,
                 RawAccelerometerValue = (this.RawAccelerometerValueX, this.RawAccelerometerValueY, this.RawAccelerometerValueZ),
                 RawTemperature = this.RawTemperature,
-                RawHumidity = this.RawHumidity
+                RawHumidity = this.RawHumidity,
+                SampleTimeSpanInMs = this.SampleTimeSpanInMs
             };
         }
     }

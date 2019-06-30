@@ -20,6 +20,8 @@ namespace VR33B
         public UInt16 RawTemperature { get;  set; }
         public UInt16 RawHumidity { get; set; }
 
+        public double SampleTimeSpanInMs { get; set; }
+
         public Vector3 AccelerometerValue
         {
             get
