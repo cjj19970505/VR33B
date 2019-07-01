@@ -14,6 +14,7 @@ namespace VR33B
     public enum VR33BConnectionState { NotConnected, Connecting, Success, Failed}
     public class VR33BTerminal
     {
+        public const string SampleNamePrefix = "Sample_";
         //public byte Address = 0xff;
         private SerialPort _SerialPort;
         public SerialPort SerialPort

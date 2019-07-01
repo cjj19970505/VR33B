@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace VR33B.Storage
 {
+    /// <summary>
+    /// 更新数据采取的策略：
+    /// 更新的数据先储存到内存中（InMemory），InMemory的数据量到达InMemoryBufferSize时，移交一部分内存中的数据(MemoryToDBBatchSize)到DataBase中
+    /// </summary>
     public class VR33BSqliteStorage : IVR33BStorage
     {
 
@@ -15,10 +19,12 @@ namespace VR33B.Storage
 
         private VR33BSampleProcess _CurrentSampleProcess;
 
+        public VR33BSqliteStorageSetting Setting { get; }
+
         private object _BeforeStoreBufferLock;
         private List<VR33BSampleValueEntity> _BeforeStoreBuffer;
 
-        private int _InMemoryBufferSize = 1000;
+        //private int _InMemoryBufferSize = 1000;
         private ReaderWriterLockSlim _InMemoryBufferLock;
         private List<VR33BSampleValueEntity> _InMemoryBuffer;
 
@@ -46,6 +52,7 @@ namespace VR33B.Storage
 
         private ReaderWriterLockSlim _DataContextLock;
         private VR33BSqliteStorageContext _DataContext;
+        private object _MemoryToDataBaseTransferLock;
         public VR33BSampleTimeDispatcher SampleTimeDispatcher
         {
             get
@@ -63,55 +70,57 @@ namespace VR33B.Storage
             }
         }
 
-
-
         public VR33BSqliteStorage()
         {
+            Setting = VR33BSqliteStorageSetting.Default;
             _DataContext = new VR33BSqliteStorageContext();
             _BeforeStoreBuffer = new List<VR33BSampleValueEntity>();
             _InMemoryBuffer = new List<VR33BSampleValueEntity>();
             _BeforeStoreBufferLock = new object();
             _DataContextLock = new ReaderWriterLockSlim();
             _InMemoryBufferLock = new ReaderWriterLockSlim();
+            _MemoryToDataBaseTransferLock = new object();
 
         }
 
-        private void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
+        private async void _VR33BTerminal_OnVR33BSampleEnded(object sender, EventArgs e)
         {
-            Task.Run(() =>
+            await Task.Run(() =>
             {
-                _DataContextLock.EnterWriteLock();
+                lock (_MemoryToDataBaseTransferLock)
                 {
-                    
-                    _InMemoryBufferLock.EnterWriteLock();
+                    _DataContextLock.EnterWriteLock();
                     {
-                        _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
-                        _InMemoryBuffer.Clear();
-                    }
-                    _InMemoryBufferLock.ExitWriteLock();
 
-                    _DataContext.SaveChanges();
-                    
+                        _InMemoryBufferLock.EnterWriteLock();
+                        {
+                            _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
+                            _InMemoryBuffer.Clear();
+                        }
+                        _InMemoryBufferLock.ExitWriteLock();
+
+                        _DataContext.SaveChanges();
+
+                    }
+                    _DataContextLock.ExitWriteLock();
                 }
-                _DataContextLock.ExitWriteLock();
             });
         }
-        private DateTime _LatestMoveBufferToMemoryDateTime = DateTime.Now;
-        private TimeSpan _UpdateTimeInterval = new TimeSpan(0, 0, 0, 0, 0);
+
+        private bool _TransferingDataToDatabase = false;
         private async void _VR33BTerminal_OnVR33BSampleValueReceived(object sender, VR33BSampleValue e)
         {
             lock (_BeforeStoreBufferLock)
             {
                 _BeforeStoreBuffer.Add(VR33BSampleValueEntity.FromStruct(e));
             }
-            DateTime now = DateTime.Now;
-            if (now - _LatestMoveBufferToMemoryDateTime < _UpdateTimeInterval)
+            if (_InMemoryBufferLock.WaitingWriteCount > 2)
             {
                 return;
             }
-            _LatestMoveBufferToMemoryDateTime = now;
             await Task.Run(() =>
             {
+                int inMemorySize;
                 _InMemoryBufferLock.EnterWriteLock();
                 {
                     lock (_BeforeStoreBufferLock)
@@ -119,21 +128,51 @@ namespace VR33B.Storage
                         _InMemoryBuffer.AddRange(_BeforeStoreBuffer);
                         _BeforeStoreBuffer.Clear();
                     }
-                    if (_InMemoryBuffer.Count > _InMemoryBufferSize)
-                    {
-                        _DataContextLock.EnterWriteLock();
-                        {
-                            DateTime beginTimingDateTime = DateTime.Now;
-                            System.Diagnostics.Debug.WriteLine("BEGIN MOVING MEMORY TO DB");
-                            _DataContext.SampleValueEntities.AddRange(_InMemoryBuffer);
-                            _InMemoryBuffer.Clear();
-                            _DataContext.SaveChanges();
-                            System.Diagnostics.Debug.WriteLine("MOVE MEMORY TO DB TAKES " + (DateTime.Now - beginTimingDateTime).TotalMilliseconds + "Ms");
-                        }
-                        _DataContextLock.ExitWriteLock();
-                    }
+                    inMemorySize = _InMemoryBuffer.Count;
                 }
                 _InMemoryBufferLock.ExitWriteLock();
+                if (inMemorySize > Setting.InMemoryBufferSize && !_TransferingDataToDatabase) //添加!_DataContextLock.IsWriteLockHeld这个条件可能会使后面数据库增长到很大时，InMemory中的条目数越来越多 
+                {
+                    Task.Run(() =>
+                    {
+                        lock (_MemoryToDataBaseTransferLock)
+                        {
+                            _TransferingDataToDatabase = true;
+                            List<VR33BSampleValueEntity> memToDBMiddleBuffer;
+
+                            _InMemoryBufferLock.EnterReadLock();
+                            inMemorySize = _InMemoryBuffer.Count;
+                            if(inMemorySize <= Setting.InMemoryBufferSize)
+                            {
+                                _InMemoryBufferLock.ExitReadLock();
+                            }
+                            else
+                            {
+                                memToDBMiddleBuffer = _InMemoryBuffer.GetRange(0, Setting.MemoryToDBBatchSize);
+                                _InMemoryBufferLock.ExitReadLock();
+                                _DataContextLock.EnterWriteLock();
+                                {
+                                    _TransferingDataToDatabase = true;
+                                    DateTime beginTimingDateTime = DateTime.Now;
+                                    System.Diagnostics.Debug.WriteLine("BEGIN MOVING MEMORY TO DB");
+                                    _DataContext.SampleValueEntities.AddRange(memToDBMiddleBuffer);
+                                    _DataContext.SaveChanges();
+                                    System.Diagnostics.Debug.WriteLine("MOVE MEMORY TO DB TAKES " + (DateTime.Now - beginTimingDateTime).TotalMilliseconds + "Ms");
+                                    _TransferingDataToDatabase = false;
+                                }
+                                _DataContextLock.ExitWriteLock();
+
+                                _InMemoryBufferLock.EnterWriteLock();
+                                {
+                                    _InMemoryBuffer.RemoveRange(0, Setting.MemoryToDBBatchSize);
+                                }
+                                _InMemoryBufferLock.ExitWriteLock();
+                            }
+                            _TransferingDataToDatabase = false;
+                        }
+                    });
+
+                }
 
                 Updated?.Invoke(this, e);
             });
@@ -189,12 +228,14 @@ namespace VR33B.Storage
                     {
                         _DataContextLock.EnterReadLock();
                         {
-
+                            DateTime beforeReadDateTime = DateTime.Now;
+                            System.Diagnostics.Debug.WriteLine("BEGIN QUERY FROM DB");
                             inDatabaseQueryResult.AddRange(
                                 (from entity in dbcontext.SampleValueEntities
                                  where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime && entity.SampleProcessGuid == _CurrentSampleProcess.Guid
                                  select entity.ToStruct()).ToList()
                                 );
+                            System.Diagnostics.Debug.WriteLine("QUERY FROM DB TAKES " + (DateTime.Now - beforeReadDateTime).TotalMilliseconds + "Ms");
                         }
                         _DataContextLock.ExitReadLock();
                     }
@@ -264,7 +305,7 @@ namespace VR33B.Storage
 
                 if (inDatabaseQueryNeeded)
                 {
-                    using(var dbcontext = new VR33BSqliteStorageContext())
+                    using (var dbcontext = new VR33BSqliteStorageContext())
                     {
                         _DataContextLock.EnterReadLock();
                         {
@@ -298,6 +339,13 @@ namespace VR33B.Storage
                 return list;
             });
         }
+
+        public async Task<List<VR33BSampleProcess>> GetAllSampleProcessesAsync()
+        {
+            var processList = await (from processEntity in _DataContext.SampleProcessEntities
+                                     select processEntity.ToStruct()).ToListAsync();
+            return processList;
+        }
     }
 
     internal class VR33BSqliteStorageContext : DbContext
@@ -313,7 +361,6 @@ namespace VR33B.Storage
                 Database.EnsureCreated();
                 _Created = true;
             }
-            //SampleValueEntities.OrderBy
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -389,6 +436,29 @@ namespace VR33B.Storage
                 Name = process.Name,
                 Guid = process.Guid
             };
+        }
+    }
+
+    public struct VR33BSqliteStorageSetting
+    {
+        public int InMemoryBufferSize { get; set; }
+
+        /// <summary>
+        /// 当需要移交数据到DB中时要一次性移交多少数据
+        /// 太小的话会造成频繁写入数据库，太大会造成一次性写入（锁定）时间太小
+        /// </summary>
+        public int MemoryToDBBatchSize { get; set; }
+
+        public static VR33BSqliteStorageSetting Default
+        {
+            get
+            {
+                return new VR33BSqliteStorageSetting
+                {
+                    InMemoryBufferSize = 10000,
+                    MemoryToDBBatchSize = 1000
+                };
+            }
         }
     }
 }

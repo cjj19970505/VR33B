@@ -12,5 +12,6 @@ namespace VR33B
         VR33BTerminal VR33BTerminal { get; set; }
         Task<List<VR33BSampleValue>> GetFromDateTimeRangeAsync(DateTime startDateTime, DateTime endDateTime);
         Task<List<VR33BSampleValue>> GetFromSampleIndexRangeAsync(long minIndex, long maxIndex);
+        
     }
 }

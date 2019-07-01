@@ -121,7 +121,7 @@ namespace VR33B.LineGraphic
         {
             get
             {
-                var possibleInterval = Setting.BaseUpdateTimeSpan + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 150);
+                var possibleInterval = Setting.BaseUpdateTimeSpan + TimeSpan.FromMilliseconds(_LatestPlotTimeSpan.TotalMilliseconds * 5);
                 if (possibleInterval < Setting.MaxUpdateTimeSpan)
                 {
                     return possibleInterval;
@@ -141,6 +141,8 @@ namespace VR33B.LineGraphic
         private (double ActualMinimum, double ActualMaximum) _LatestPlotAxisActualMinMax;
 
         bool _TrackingModeReploting = false;
+
+        VR33BSampleValue _LatestUpdatedFromStorageToPlotSampleValue;
         private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
         {
             if (e.SampleIndex == 0)
@@ -162,20 +164,25 @@ namespace VR33B.LineGraphic
                 else
                 {
                     _TrackingModeReploting = true;
-                    await _ReplotAsync();
+                    
+                    await _ReplotAsync(e.SampleDateTime);
                     _TrackingModeReploting = false;
                 }
 
             }
         }
         private Guid _LatestReplotGuid;
-        private Task _ReplotAsync()
+        private Task _ReplotAsync(DateTime? loadCenterDateTime = null)
         {
             var replotGuid = _LatestReplotGuid = Guid.NewGuid();
             double displayRange = _LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum;
             //double newHalfLoadedRange = _LoadedRangeAndDisplayRangeRatio / 2 * displayRange;
             double newHalfLoadedRange = Setting.LoadedRangeAndDisplayRangeRatio / 2 * displayRange;
             double displayMid = (_LatestPlotAxisActualMinMax.ActualMaximum + _LatestPlotAxisActualMinMax.ActualMinimum) / 2;
+            if(loadCenterDateTime.HasValue)
+            {
+                displayMid = TimeSpanAxis.ToDouble((loadCenterDateTime.Value - _FirstSampleDateTime));
+            }
             double loadedLeft = displayMid - newHalfLoadedRange;
             double loadedRight = displayMid + newHalfLoadedRange;
             _LoadedRangeTimeSpan = (TimeSpanAxis.ToTimeSpan(loadedLeft), TimeSpanAxis.ToTimeSpan(loadedRight));
@@ -211,6 +218,7 @@ namespace VR33B.LineGraphic
                     YLineSeries.ItemsSource = yDataPoint;
                     ZLineSeries.ItemsSource = zDataPoint;
 
+                    
                     if (TrackingModeOn)
                     {
                         double latestProgress = 0.5;
@@ -222,6 +230,13 @@ namespace VR33B.LineGraphic
                         TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * latestProgress + _LatestPlotAxisActualMinMax.ActualMinimum) - TimeSpanAxis.ToDouble(plotData.Last().SampleDateTime - _FirstSampleDateTime)) * TimeSpanPlotAxis.Scale);
 
                     }
+                    
+                    /*
+                    if(loadCenterDateTime.HasValue)
+                    {
+                        TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * 0.5 + _LatestPlotAxisActualMinMax.ActualMinimum) - TimeSpanAxis.ToDouble(loadCenterDateTime.Value - _FirstSampleDateTime)) * TimeSpanPlotAxis.Scale);
+                    }
+                    */
                     _LoadedSampleValues = plotData.ToArray();
                     OxyPlotView.InvalidatePlot();
                 }
