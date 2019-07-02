@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace VR33B.Storage
 {
@@ -14,6 +16,8 @@ namespace VR33B.Storage
     /// </summary>
     public class VR33BSqliteStorage : IVR33BStorage
     {
+
+        public const string SettingFileName = "VR33BSqliteStoragetSetting.xml";
 
         VR33BTerminal _VR33BTerminal;
 
@@ -72,7 +76,27 @@ namespace VR33B.Storage
 
         public VR33BSqliteStorage()
         {
-            Setting = VR33BSqliteStorageSetting.Default;
+            var defaultSetting = VR33BSqliteStorageSetting.Default;
+
+            var fileName = SettingFileName;
+            var filePath = Environment.CurrentDirectory + "//" + fileName;
+            XmlSerializer serializer = new XmlSerializer(typeof(VR33BSqliteStorageSetting));
+            if (!File.Exists(filePath))
+            {
+                using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    serializer.Serialize(settingStream, defaultSetting);
+                };
+                Setting = defaultSetting;
+            }
+            else
+            {
+                using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                {
+                    Setting = (VR33BSqliteStorageSetting)serializer.Deserialize(settingStream);
+                };
+            }
+
             _DataContext = new VR33BSqliteStorageContext();
             _BeforeStoreBuffer = new List<VR33BSampleValueEntity>();
             _InMemoryBuffer = new List<VR33BSampleValueEntity>();
