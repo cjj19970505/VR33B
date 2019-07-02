@@ -72,6 +72,9 @@ namespace VR33B
 
         public VR33BConnectionState ConnectionState { get; private set; }
 
+        private Task _SendCommandToSerialPortFromQueueTask;
+        private object _SendCommandToSerialPortFromQueueTaskLock = new object();
+
         public VR33BTerminal(IVR33BStorage storage, bool useFakeSampleValueGenerator = false)
         {
             LatestSetting = new VR33BSetting();
@@ -84,7 +87,7 @@ namespace VR33B
 
             _CommandSessionQueueLock = new object();
             _CommandSessionQueue = new Queue<CommandSession>();
-            _SendCommandToSerialPortFromQueueTask();
+            //_RunSendCommandToSerialPortFromQueueTask();
             SerialPort = new SerialPort();
             if(SerialPort.GetPortNames().Length > 0)
             {
@@ -187,6 +190,18 @@ namespace VR33B
             {
                 _CommandSessionQueue.Enqueue(session);
             }
+            bool shouldTurnOnTask = false;
+            lock(_SendCommandToSerialPortFromQueueTaskLock)
+            {
+                if(_SendCommandToSerialPortFromQueueTask == null)
+                {
+                    shouldTurnOnTask = true;
+                }
+            }
+            if(shouldTurnOnTask)
+            {
+                _RunSendCommandToSerialPortFromQueueTask();
+            }
             return Task.Run(() =>
             {
                 while (session.CommandState == VR33BCommandState.Sending || session.CommandState == VR33BCommandState.Idle)
@@ -211,7 +226,7 @@ namespace VR33B
             });
         }
 
-        public Task _SendCommandToSerialPortFromQueueTask()
+        public Task _RunSendCommandToSerialPortFromQueueTask()
         {
             return Task.Run(() =>
             {
@@ -242,8 +257,18 @@ namespace VR33B
 
                 while (true)
                 {
+                    
                     lock (_CommandSessionQueueLock)
                     {
+                        lock(_SendCommandToSerialPortFromQueueTaskLock)
+                        {
+                            if (_CommandSessionQueue.Count == 0 && (CurrentSession == null || CurrentSession.CommandState == VR33BCommandState.Success || CurrentSession.CommandState == VR33BCommandState.Failed))
+                            {
+                                _SendCommandToSerialPortFromQueueTask = null;
+                                OnReceived -= onSerialReceive;
+                                break;
+                            }
+                        }
                         if (_CommandSessionQueue.Count == 0 && (CurrentSession == null || CurrentSession.CommandState == VR33BCommandState.Success || CurrentSession.CommandState == VR33BCommandState.Failed))
                         {
                             continue;
