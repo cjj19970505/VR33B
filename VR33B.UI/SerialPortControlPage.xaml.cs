@@ -233,7 +233,6 @@ namespace VR33B.UI
 
         public event EventHandler<VR33BReceiveData> OnReceived;
         public event EventHandler<VR33BSendData> OnSerialPortSent;
-        public event SerialDataReceivedEventHandler SerialPortDataReceived;
         public event EventHandler<byte[]> SerialRawDataReceived;
 
         public ObservableCollection<string> AvaliablePortNames { get; }

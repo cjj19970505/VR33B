@@ -58,32 +58,6 @@ namespace VR33B
 
         public static VR33BSampleValue FromVR33BReceiveData(VR33BReceiveData receiveData, VR33BSetting vr33bSetting, long index, VR33BSampleProcess sampleProcess)
         {
-            DateTime tempBaseDateTime = new DateTime(2008, 2, 12, 10, 5, 10);
-            double durationInMs = 0;
-            switch(vr33bSetting.SampleFrequence)
-            {
-                case VR33BSampleFrequence._1Hz:
-                    durationInMs = 1000.0 / 1;
-                    break;
-                case VR33BSampleFrequence._5Hz:
-                    durationInMs = 1000.0 / 5;
-                    break;
-                case VR33BSampleFrequence._20Hz:
-                    durationInMs = 1000.0 / 20;
-                    break;
-                case VR33BSampleFrequence._50Hz:
-                    durationInMs = 1000.0 / 50;
-                    break;
-                case VR33BSampleFrequence._100Hz:
-                    durationInMs = 1000.0 / 100;
-                    break;
-                case VR33BSampleFrequence._200Hz:
-                    durationInMs = 1000.0 / 200;
-                    break;
-                default:
-                    durationInMs = 1000;
-                    break;
-            }
             int month = receiveData.Data[2];
             int day = receiveData.Data[3];
             int hour = receiveData.Data[4];

@@ -238,27 +238,12 @@
     </ApplicationDefinition>
     <Compile Include="Extensions.cs" />
     <Compile Include="TestList.cs" />
-    <Compile Include="VR33BGraph.xaml.cs">
-      <DependentUpon>VR33BGraph.xaml</DependentUpon>
-    </Compile>
     <Compile Include="VR33BOxyLegendControl.xaml.cs">
       <DependentUpon>VR33BOxyLegendControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="VR33BOxyPlotControl.xaml.cs">
       <DependentUpon>VR33BOxyPlotControl.xaml</DependentUpon>
     </Compile>
-    <Page Include="AxisLegendView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AxisMarkerLegendView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="LineMarkerGraph.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -267,24 +252,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AxisLegendView.xaml.cs">
-      <DependentUpon>AxisLegendView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="AxisMarkerLegendView.xaml.cs">
-      <DependentUpon>AxisMarkerLegendView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="VisibilityToCheckedConverter.cs" />
-    <Compile Include="LineMarkerGraph.xaml.cs">
-      <DependentUpon>LineMarkerGraph.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="VR33BGraph.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="VR33BOxyLegendControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

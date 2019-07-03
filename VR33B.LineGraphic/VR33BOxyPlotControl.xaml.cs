@@ -141,8 +141,6 @@ namespace VR33B.LineGraphic
         private (double ActualMinimum, double ActualMaximum) _LatestPlotAxisActualMinMax;
 
         bool _TrackingModeReploting = false;
-
-        VR33BSampleValue _LatestUpdatedFromStorageToPlotSampleValue;
         private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
         {
             if (e.SampleIndex == 0)

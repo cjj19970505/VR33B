@@ -200,9 +200,6 @@ namespace VR33B.Storage
 
                 Updated?.Invoke(this, e);
             });
-
-
-            //throw new NotImplementedException();
         }
 
         private void _VR33BTerminal_OnVR33BSampleStarted(object sender, VR33BSampleProcess e)

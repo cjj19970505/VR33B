@@ -581,7 +581,7 @@ namespace VR33B
                 SerialPort.Open();
                 await Task.Run(() =>
                 {
-                    Thread.Sleep(2000);
+                    Thread.Sleep(500);
                 });
                 
                 var addresssResult = await ReadDeviceAddressAsync();
