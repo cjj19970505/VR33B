@@ -23,6 +23,11 @@
                 <local:VR33BOxyLegendControl x:Name="XAxisLegendView" Margin="5"/>
                 <local:VR33BOxyLegendControl x:Name="YAxisLegendView" Margin="5"/>
                 <local:VR33BOxyLegendControl x:Name="ZAxisLegendView" Margin="5"/>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="选择区域颜色："/>
+                    <Button x:Name="SelectedRangeColorButton"  Width="20" Height="20" Margin="10,1,10,1" Background="Black" Click="SelectedRangeColorButton_Click"/>
+                </StackPanel>
+                
             </StackPanel>
         </Expander>
 
