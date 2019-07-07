@@ -726,6 +726,7 @@ namespace VR33B
                 int receivedThresholdInPercent = response.Response.Data[0];
                 double receivedThreshold = response.Response.Data[1]/10.0;
                 LatestSetting.Threshold = receivedThreshold;
+                LatestSetting.ThresholdInPercent = receivedThresholdInPercent;
                 return VR33BSettingResult.Succss;
             }
             else

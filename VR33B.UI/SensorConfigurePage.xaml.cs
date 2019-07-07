@@ -30,12 +30,6 @@ namespace VR33B.UI
         }
         private ObservableCollection<int> dataBits = new ObservableCollection<int> { 8, 7, 6 };
 
-        private void SamplingThresholdSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            SamplingThresholdInPercentValueBlock.Text = ((int)e.NewValue).ToString() + "%";
-            
-        }
-
         private async void SamplingRateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if(e.RemovedItems.Count == 0 || SamplingRateBox.SelectedValue == null || !SamplingRateBox.IsDropDownOpen)
@@ -117,21 +111,24 @@ namespace VR33B.UI
             await Dispatcher.InvokeAsync(() => { SamplingThresholdRing.Visibility = Visibility.Collapsed; });
         }
 
+        private bool _AddressSetting = false;
         private async void AddressBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Return)
+            if(e.Key == Key.Return && !_AddressSetting)
             {
                 AddressBoxProgressRing.Visibility = Visibility.Visible;
                 await SettingViewModel.VR33BTerminal.SetDeviceAddressAsync(byte.Parse(AddressBox.Text));
                 await Dispatcher.InvokeAsync(() => { AddressBoxProgressRing.Visibility = Visibility.Collapsed; });
             }
             
+
+
         }
 
         private void AddressBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            AddressBoxProgressRing.Visibility = Visibility.Visible;
-            
+            AddressBox.InvalidateProperty(TextBox.TextProperty);
+
         }
 
         private async void RestoreButton_Click(object sender, RoutedEventArgs e)
@@ -253,7 +250,7 @@ namespace VR33B.UI
             {
                 if (VR33BTerminal == null)
                 {
-                    return 0;
+                    return 70;
                 }
                 return VR33BTerminal.LatestSetting.ThresholdInPercent;
             }
@@ -479,6 +476,28 @@ namespace VR33B.UI
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    internal class ConnectionStateAndSamplingToEnableConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            var connectionState = (VR33BConnectionState)values[0];
+            var sampling = (bool)values[1];
+            if(connectionState == VR33BConnectionState.Success && !sampling)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
