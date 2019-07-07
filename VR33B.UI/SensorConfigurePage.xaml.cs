@@ -116,6 +116,28 @@ namespace VR33B.UI
             var reponse = await SettingViewModel.VR33BTerminal.SetThresholdInPercent((int)SamplingThresholdSlider.Value);
             await Dispatcher.InvokeAsync(() => { SamplingThresholdRing.Visibility = Visibility.Collapsed; });
         }
+
+        private async void AddressBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Return)
+            {
+                AddressBoxProgressRing.Visibility = Visibility.Visible;
+                await SettingViewModel.VR33BTerminal.SetDeviceAddressAsync(byte.Parse(AddressBox.Text));
+                await Dispatcher.InvokeAsync(() => { AddressBoxProgressRing.Visibility = Visibility.Collapsed; });
+            }
+            
+        }
+
+        private void AddressBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            AddressBoxProgressRing.Visibility = Visibility.Visible;
+            
+        }
+
+        private async void RestoreButton_Click(object sender, RoutedEventArgs e)
+        {
+            await SettingViewModel.VR33BTerminal.ResetAllSetting();
+        }
     }
 
     public class VR33BSettingViewModel : INotifyPropertyChanged

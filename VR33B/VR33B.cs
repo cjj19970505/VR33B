@@ -12,6 +12,8 @@ namespace VR33B
     public enum VR33BReadResult { Success, Failed}
 
     public enum VR33BConnectionState { NotConnected, Connecting, Success, Failed}
+
+    public enum VR33BState { Idle, Setting, Reading}
     public class VR33BTerminal
     {
         public const string SampleNamePrefix = "Sample_";
@@ -210,7 +212,7 @@ namespace VR33B
             {
                 while (session.CommandState == VR33BCommandState.Sending || session.CommandState == VR33BCommandState.Idle)
                 {
-
+                    
                 }
 
                 if (session.CommandState == VR33BCommandState.Success)
@@ -538,6 +540,17 @@ namespace VR33B
             var response = await SendCommandAsync(new CalibrateXCommand(this));
             if (response.Success)
             {
+                /*
+                var data = response.Response.Data;
+                UInt16 sensitiveX = BitConverter.ToUInt16(new byte[] { data[1], data[0] }, 0);
+                UInt16 zeroX = BitConverter.ToUInt16(new byte[] { data[3], data[2] }, 0);
+                var sensitive = LatestSetting.AccelerometerSensibility;
+                var zero = LatestSetting.AccelerometerZero;
+                sensitive.X = sensitiveX;
+                zero.X = zeroX;
+                LatestSetting.AccelerometerSensibility = sensitive;
+                LatestSetting.AccelerometerZero = zero;
+                */
                 return VR33BSettingResult.Succss;
             }
             else
@@ -551,6 +564,15 @@ namespace VR33B
             var response = await SendCommandAsync(new CalibrateYCommand(this));
             if (response.Success)
             {
+                var data = response.Response.Data;
+                UInt16 sensitiveY = BitConverter.ToUInt16(new byte[] { data[1], data[0] }, 0);
+                UInt16 zeroY = BitConverter.ToUInt16(new byte[] { data[3], data[2] }, 0);
+                var sensitive = LatestSetting.AccelerometerSensibility;
+                var zero = LatestSetting.AccelerometerZero;
+                sensitive.Y = sensitiveY;
+                zero.Y = zeroY;
+                LatestSetting.AccelerometerSensibility = sensitive;
+                LatestSetting.AccelerometerZero = zero;
                 return VR33BSettingResult.Succss;
             }
             else
@@ -564,6 +586,15 @@ namespace VR33B
             var response = await SendCommandAsync(new CalibrateZCommand(this));
             if (response.Success)
             {
+                var data = response.Response.Data;
+                UInt16 sensitiveZ = BitConverter.ToUInt16(new byte[] { data[1], data[0] }, 0);
+                UInt16 zeroZ = BitConverter.ToUInt16(new byte[] { data[3], data[2] }, 0);
+                var sensitive = LatestSetting.AccelerometerSensibility;
+                var zero = LatestSetting.AccelerometerZero;
+                sensitive.Z = sensitiveZ;
+                zero.Z = zeroZ;
+                LatestSetting.AccelerometerSensibility = sensitive;
+                LatestSetting.AccelerometerZero = zero;
                 return VR33BSettingResult.Succss;
             }
             else
@@ -702,6 +733,37 @@ namespace VR33B
                 return VR33BSettingResult.Falied;
             }
         }
+
+        public async Task<VR33BSettingResult> ResetAllSetting()
+        {
+            var command = new ResetCommand(this);
+            LatestSetting.DeviceAddress = 0x01;
+            var response = await SendCommandAsync(command);
+            if(response.Success)
+            {
+                var readResult = await ReadAllSettingAsync();
+                if(readResult == VR33BReadResult.Success)
+                {
+                    return VR33BSettingResult.Succss;
+                }
+            }
+            return VR33BSettingResult.Falied;
+        }
+
+        
+        public async Task<VR33BSettingResult> SetDeviceAddressAsync(byte newAddress)
+        {
+            var command = new SetAddressCommand(this, newAddress);
+            LatestSetting.DeviceAddress = 0xff;
+            var response = await SendCommandAsync(command);
+            if(response.Success)
+            {
+                LatestSetting.DeviceAddress = response.Response.Data[0];
+                return VR33BSettingResult.Succss;
+            }
+            return VR33BSettingResult.Falied;
+        }
+        
 
         
         
@@ -1157,7 +1219,7 @@ namespace VR33B
                 RegisterAddress = 0x0012,
                 Data = new byte[] { 0, 01 }
             };
-            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)) };
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 1500)) };
         }
 
     }

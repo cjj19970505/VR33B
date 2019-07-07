@@ -20,7 +20,11 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            return true;
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 4)
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool OnTimeout()
@@ -37,7 +41,7 @@ namespace VR33B
                 RegisterAddress = 0x0113,
                 Data = new byte[] { 0, 00 }
             };
-            SendDataSequence = new (VR33BSendData, TimeSpan)[]{ (sendData, TimeSpan.FromMilliseconds(50))};
+            SendDataSequence = new (VR33BSendData, TimeSpan)[]{ (sendData, TimeSpan.FromMilliseconds(100))};
         }
     }
 
@@ -55,12 +59,16 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            return true;
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 4)
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool OnTimeout()
         {
-            return true;
+            return false;
         }
 
         public CalibrateYCommand(VR33BTerminal vr33bTerminal)
@@ -72,7 +80,7 @@ namespace VR33B
                 RegisterAddress = 0x0114,
                 Data = new byte[] { 0, 00 }
             };
-            SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, TimeSpan.FromMilliseconds(50)) };
+            SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, TimeSpan.FromSeconds(15)) };
         }
     }
 
@@ -90,12 +98,16 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            return true;
+            if(receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 4)
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool OnTimeout()
         {
-            return true;
+            return false;
         }
 
         public CalibrateZCommand(VR33BTerminal vr33bTerminal)
@@ -107,39 +119,65 @@ namespace VR33B
                 RegisterAddress = 0x0115,
                 Data = new byte[] { 0, 00 }
             };
-            SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, TimeSpan.FromMilliseconds(50)) };
+            SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, TimeSpan.FromSeconds(15)) };
         }
     }
 
     public class ResetCommand : ICommand
     {
-        public int MaximumRepeatCount => throw new NotImplementedException();
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 10;
+            }
+        }
 
-        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence => throw new NotImplementedException();
+        private (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] _SendDataSequence;
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
+        {
+            get
+            {
+                return _SendDataSequence;
+            }
+        }
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            throw new NotImplementedException();
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 0x17)
+            {
+                return true;
+            }
+            return false;
         }
 
         public bool OnTimeout()
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public ResetCommand(VR33BTerminal vr33bTerminal)
         {
-            /*
-            var resetSendData = new VR33BSendData
+            var setData = new VR33BSendData
             {
-                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                DeviceAddress = 0xff,
                 ReadOrWrite = VR33BMessageType.Write,
-                RegisterAddress = 0x28,
+                RegisterAddress = 0x0028,
                 Data = new byte[] { 0x55, 0xaa }
             };
-            */
-            
+            var readData = new VR33BSendData
+            {
+                DeviceAddress = 0x01,
+                ReadOrWrite = VR33BMessageType.Read,
+                RegisterAddress = 0x0015,
+                Data = new byte[] { 0, 0x0c }
+            };
 
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[]
+            {
+                (setData, new TimeSpan(0, 0, 0, 0, 1000)),
+                (readData, new TimeSpan(0, 0, 0, 0, 50))
+            };
         }
     }
 
@@ -244,6 +282,68 @@ namespace VR33B
             _SendDataSequence = new (VR33BSendData, TimeSpan)[]
             {
                 (setData, new TimeSpan(0, 0, 0, 0, 100)),
+            };
+        }
+    }
+
+    public class SetAddressCommand:ICommand
+    {
+        public byte NewAddress { get; set; }
+        public int ThresholdInPercent { get; set; }
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 10;
+            }
+        }
+
+        private (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] _SendDataSequence;
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence
+        {
+            get
+            {
+                return _SendDataSequence;
+            }
+        }
+
+        public bool IsResponse(VR33BReceiveData receiveData)
+        {
+            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 1 && receiveData.Data[0] == NewAddress)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public bool OnTimeout()
+        {
+            return false;
+        }
+
+        public SetAddressCommand(VR33BTerminal vr33bTerminal, byte newAddress)
+        {
+            NewAddress = newAddress;
+
+            var setData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0001,
+                Data = new byte[] { 0x00, newAddress }
+            };
+            var readData = new VR33BSendData
+            {
+                DeviceAddress = newAddress,
+                ReadOrWrite = VR33BMessageType.Read,
+                RegisterAddress = 0x01,
+                Data = new byte[] { 0, 1 }
+            };
+
+            _SendDataSequence = new (VR33BSendData, TimeSpan)[]
+            {
+                (setData, new TimeSpan(0, 0, 0, 0, 100)),
+                (readData, new TimeSpan(0, 0, 0, 0, 100))
             };
         }
     }
