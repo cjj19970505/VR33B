@@ -18,7 +18,7 @@
     </Page.Resources>
     <Grid>
         <StackPanel Margin="10">
-            <Grid>
+            <Grid IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -42,18 +42,29 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="采样频率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox Grid.Column="1" x:Name="SamplingRateBox" VerticalAlignment="Center"  ItemsSource="{Binding Path=SampleFrequencysSource, Mode=OneWay}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=SampleFrequency, Mode=OneWay}" Margin="0, 0,  10, 0" SelectionChanged="SamplingRateBox_SelectionChanged" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                            <ComboBox Grid.Column="1" x:Name="SamplingRateBox" VerticalAlignment="Center"  ItemsSource="{Binding Path=SampleFrequencysSource, Mode=OneWay}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=SampleFrequency, Mode=OneWay}" Margin="0, 0,  10, 0" SelectionChanged="SamplingRateBox_SelectionChanged"/>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
                                 <ProgressBar x:Name="SamplingRateRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" Visibility="Collapsed" />
                             </Viewbox>
-                            <TextBlock Grid.Column="3" Text="采样阈值：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
+                            <TextBlock Grid.Column="3" Text="阈值：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
                             <Grid Grid.Column="4">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Slider x:Name="SamplingThresholdSlider" Grid.Column="0" Maximum="100" Minimum="0" Margin="5" VerticalAlignment="Center" ValueChanged="SamplingThresholdSlider_ValueChanged" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
-                                <TextBlock x:Name="SamplingThresholdValueBlock" Grid.Column="1" Text="0%" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                <Slider x:Name="SamplingThresholdSlider" Grid.Column="0" Maximum="100" Minimum="0" Margin="5" VerticalAlignment="Center" 
+                                        Value="{Binding Path=ThresholdInPercent, Mode=OneWay}"
+                                        ValueChanged="SamplingThresholdSlider_ValueChanged" 
+                                        Thumb.DragCompleted="SamplingThresholdSlider_DragCompleted"/>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock x:Name="SamplingThresholdInPercentValueBlock"  Text="0%" VerticalAlignment="Center"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="SamplingThresholdValueBlock" Text="{Binding Path=Threshold, Mode=OneWay}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="g"/>
+                                    </StackPanel>
+                                    
+                                </StackPanel>
+                                
                             </Grid>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SamplingThresholdRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
@@ -69,12 +80,12 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="当前时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <DatePicker x:Name="CurrentDatePicker" Grid.Column="1" Margin="0, 0, 10, 0" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                            <DatePicker x:Name="CurrentDatePicker" Grid.Column="1" Margin="0, 0, 10, 0"/>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="CurrentDateProgressRing"  Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Grid.Column="3" Text="预约时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center" ></TextBlock>
-                            <DatePicker x:Name="SessionPicker" Grid.Column="4" Margin="0, 0, 10, 0" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                            <DatePicker x:Name="SessionPicker" Grid.Column="4" Margin="0, 0, 10, 0"/>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SessionPickerProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
@@ -89,12 +100,12 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="地址：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <TextBox x:Name="AddressBox" Grid.Column="1" VerticalAlignment="Center" Margin="0, 0, 10, 0" Text="{Binding Path=DeviceAddress, Converter={StaticResource ResourceKey=DeviceAddressToTextBoxContentConverter}, Mode=OneWay}" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}" IsReadOnly="True"/>
+                            <TextBox x:Name="AddressBox" Grid.Column="1" VerticalAlignment="Center" Margin="0, 0, 10, 0" Text="{Binding Path=DeviceAddress, Converter={StaticResource ResourceKey=DeviceAddressToTextBoxContentConverter}, Mode=OneWay}" IsReadOnly="True"/>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="AddressBoxProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" Grid.Column="3" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="SensorBaudRateBox" Grid.Column="4" VerticalAlignment="Center" Margin="0, 0, 10, 0" ItemsSource="{Binding Path=BaudRateSource}" DisplayMemberPath="Description" SelectedValuePath="Value" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                            <ComboBox x:Name="SensorBaudRateBox" Grid.Column="4" VerticalAlignment="Center" Margin="0, 0, 10, 0" ItemsSource="{Binding Path=BaudRateSource}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=BaudRate, Mode=OneWay}"/>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SensorBaudRateProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
@@ -109,12 +120,12 @@
                                 <ColumnDefinition Width="0.2*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="校验位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="SensorParityBox" Grid.Column="1" Margin="0, 0, 10, 0" VerticalAlignment="Center" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                            <ComboBox x:Name="SensorParityBox" Grid.Column="1" Margin="0, 0, 10, 0" VerticalAlignment="Center"/>
                             <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SensorParityProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Text="停止位：" Grid.Column="3" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="SensorStopBitBox" Grid.Column="4" Margin="0, 0, 10, 0" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}"/>
+                            <ComboBox x:Name="SensorStopBitBox" Grid.Column="4" Margin="0, 0, 10, 0"/>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SensorStopBitProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
@@ -123,13 +134,75 @@
                 </StackPanel>
                 <Separator Grid.Column="1" BorderThickness="1" Width="1" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"></Separator>
                 <StackPanel Grid.Column="2">
-                    <StackPanel x:Name="AccelerometerRangePanel" Margin="0, 0, 0, 10" Orientation="Horizontal">
+                    <StackPanel x:Name="AccelerometerRangePanel" Margin="0, 0, 0, 5" Orientation="Horizontal">
                         <TextBlock Text="加速度量程：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                        <ComboBox x:Name="AccelerometerRangeBox" SelectedIndex="0" ItemsSource="{Binding Path=AccelerometerRangeSource}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=AccelerometerRange, Mode=OneWay}" Width="60" IsEnabled="{Binding Path=ConnectionState, Converter={StaticResource ConnectionStateToEnableConverter}, Mode=OneWay}" SelectionChanged="AccelerometerRangeBox_SelectionChanged"/>
+                        <ComboBox x:Name="AccelerometerRangeBox" SelectedIndex="0" ItemsSource="{Binding Path=AccelerometerRangeSource}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=AccelerometerRange, Mode=OneWay}" Width="60" SelectionChanged="AccelerometerRangeBox_SelectionChanged"/>
                         <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                             <ProgressBar Visibility="Collapsed" x:Name="AccelerometerRangeProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                         </Viewbox>
                     </StackPanel>
+                    <Grid Margin="0, 5, 0, 5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="灵敏度X：" Grid.Column="0" VerticalAlignment="Center" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"/>
+                            <TextBox x:Name="SensitiveXTextbox" Grid.Column="1" Text="{Binding Path=AccelerometerSensibilityX, Mode=OneWay}"/>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="灵敏度Y：" Grid.Column="0" VerticalAlignment="Center" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"/>
+                            <TextBox x:Name="SensitiveYTextbox" Grid.Column="1" Text="{Binding Path=AccelerometerSensibilityY, Mode=OneWay}"/>
+                        </Grid>
+                        <Grid Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="灵敏度Z：" Grid.Column="0" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"/>
+                            <TextBox x:Name="SensitiveZTextbox" Grid.Column="1" Text="{Binding Path=AccelerometerSensibilityZ, Mode=OneWay}"/>
+                        </Grid>
+                    </Grid>
+                    <Grid x:Name="ZeroOffsetGrid" Margin="0, 5, 0, 5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="零偏X：" Grid.Column="0" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"/>
+                            <TextBox x:Name="ZeroXTextbox" Grid.Column="1" IsReadOnly="True" Text="{Binding Path=AccelerommeterZeroX, Mode=OneWay}"/>
+                        </Grid>
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="零偏Y：" Grid.Column="0" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"/>
+                            <TextBox x:Name="ZeroYTextbox" Grid.Column="1" IsReadOnly="True" Text="{Binding Path=AccelerommeterZeroY, Mode=OneWay}"/>
+                        </Grid>
+                        <Grid Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="零偏Z：" Grid.Column="0" Style="{DynamicResource MaterialDesignSubheadingTextBlock}"/>
+                            <TextBox x:Name="ZeroZTextbox" Grid.Column="1" IsReadOnly="True" Text="{Binding Path=AccelerommeterZeroZ, Mode=OneWay}"/>
+                        </Grid>
+                    </Grid>
                 </StackPanel>
             </Grid>
             <Grid>
@@ -151,7 +224,7 @@
                 </Grid.ColumnDefinitions>
                 <Button x:Name="StartButton" Grid.Column="0" Content="确定" Margin="5"/>
                 <Button x:Name="CalibrateButton" Grid.Column="1" Content="校准" Margin="5"/>
-                <Button x:Name="QueryButton" Grid.Column="2" Content="查询各项参数" Margin="5" ></Button>
+                <Button x:Name="QueryButton" Grid.Column="2" Content="查询各项参数" Margin="5" Click="QueryButton_Click"/>
                 <Button x:Name="RestoreButton" Grid.Column="3" Content="恢复出厂设置" Margin="5"></Button>
             </Grid>
             <Button x:Name="SampleButton" Content="{Binding Path=Sampling, Converter={StaticResource ResourceKey=SamplingToButtonContentConverter}, Mode=OneWay}" 

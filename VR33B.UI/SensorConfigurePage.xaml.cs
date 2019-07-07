@@ -32,7 +32,8 @@ namespace VR33B.UI
 
         private void SamplingThresholdSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            SamplingThresholdValueBlock.Text = ((int)e.NewValue).ToString() + "%";
+            SamplingThresholdInPercentValueBlock.Text = ((int)e.NewValue).ToString() + "%";
+            
         }
 
         private async void SamplingRateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -72,7 +73,7 @@ namespace VR33B.UI
             }
             VR33BAccelerometerRange targetAccRange = (VR33BAccelerometerRange)AccelerometerRangeBox.SelectedValue;
             AccelerometerRangeProgressRing.Visibility = Visibility.Visible;
-            var response = await SettingViewModel.VR33BTerminal.SetAccelerometerRange(targetAccRange);
+            var response = await SettingViewModel.VR33BTerminal.SetAccelerometerRangeAsync(targetAccRange);
             await Dispatcher.InvokeAsync(() => { AccelerometerRangeProgressRing.Visibility = Visibility.Collapsed; });
         }
 
@@ -91,17 +92,29 @@ namespace VR33B.UI
 
         private async void CalibrateXButton_Click(object sender, RoutedEventArgs e)
         {
-            var result = await SettingViewModel.VR33BTerminal.CalibrateX();
+            var result = await SettingViewModel.VR33BTerminal.CalibrateXAsync();
         }
 
         private async void CalibrateYButton_Click(object sender, RoutedEventArgs e)
         {
-            await SettingViewModel.VR33BTerminal.CalibrateY();
+            await SettingViewModel.VR33BTerminal.CalibrateYAsync();
         }
 
         private async void CalibrateZButton_Click(object sender, RoutedEventArgs e)
         {
-            await SettingViewModel.VR33BTerminal.CalibrateZ();
+            await SettingViewModel.VR33BTerminal.CalibrateZAsync();
+        }
+
+        private async void QueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            await SettingViewModel.VR33BTerminal.ReadAllSettingAsync();
+        }
+
+        private async void SamplingThresholdSlider_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+        {
+            SamplingThresholdRing.Visibility = Visibility.Visible;
+            var reponse = await SettingViewModel.VR33BTerminal.SetThresholdInPercent((int)SamplingThresholdSlider.Value);
+            await Dispatcher.InvokeAsync(() => { SamplingThresholdRing.Visibility = Visibility.Collapsed; });
         }
     }
 
@@ -126,8 +139,14 @@ namespace VR33B.UI
                 _VR33BTerminal.LatestSetting.OnDeviceAddressChanged += LatestSetting_OnDeviceAddressChanged;
                 _VR33BTerminal.LatestSetting.OnSampleFrequencyChanged += LatestSetting_OnSampleFrequencyChanged;
                 _VR33BTerminal.LatestSetting.OnAccelerometerRangeChanged += LatestSetting_OnAccelerometerRangeChanged;
+                _VR33BTerminal.LatestSetting.OnThresholdInPercentChanged += LatestSetting_OnThresholdInPercentChanged;
+                _VR33BTerminal.LatestSetting.OnThresholdChanged += LatestSetting_OnThresholdChanged;
+                _VR33BTerminal.LatestSetting.OnAccelerometerSensibilityChanged += LatestSetting_OnAccelerometerSensibilityChanged;
+                _VR33BTerminal.LatestSetting.OnAccelerometerZeroChanged += LatestSetting_OnAccelerometerZeroChanged;
+                _VR33BTerminal.LatestSetting.OnSerialPortBaudRateChanged += LatestSetting_OnSerialPortBaudRateChanged;
                 _VR33BTerminal.OnVR33BSampleStarted += _VR33BTerminal_OnVR33BSampleStarted;
                 _VR33BTerminal.OnVR33BSampleEnded += _VR33BTerminal_OnVR33BSampleEnded;
+
             }
         }
 
@@ -206,6 +225,42 @@ namespace VR33B.UI
             }
         }
 
+        public int ThresholdInPercent
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.ThresholdInPercent;
+            }
+        }
+
+        public double Threshold
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.Threshold;
+            }
+        }
+
+        public VR33BSerialPortBaudRate BaudRate
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return VR33BSerialPortBaudRate._9600;
+                }
+                return VR33BTerminal.LatestSetting.SerialPortBaudRate;
+            }
+        }
+
         public bool Sampling
         {
             get
@@ -215,6 +270,78 @@ namespace VR33B.UI
                     return false;
                 }
                 return VR33BTerminal.Sampling;
+            }
+        }
+
+        public UInt16 AccelerometerSensibilityX
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerSensibility.X;
+            }
+        }
+
+        public UInt16 AccelerometerSensibilityY
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerSensibility.Y;
+            }
+        }
+
+        public UInt16 AccelerometerSensibilityZ
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerSensibility.Z;
+            }
+        }
+
+        public UInt16 AccelerommeterZeroX
+        {
+            get
+            {
+                if(VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerZero.X;
+            }
+        }
+
+        public UInt16 AccelerommeterZeroY
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerZero.Y;
+            }
+        }
+
+        public UInt16 AccelerommeterZeroZ
+        {
+            get
+            {
+                if (VR33BTerminal == null)
+                {
+                    return 0;
+                }
+                return VR33BTerminal.LatestSetting.AccelerometerZero.Z;
             }
         }
         private void LatestSetting_OnDeviceAddressChanged(object sender, byte e)
@@ -230,6 +357,35 @@ namespace VR33B.UI
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerometerRange"));
         }
+
+        private void LatestSetting_OnThresholdInPercentChanged(object sender, int e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ThresholdInPercent"));
+        }
+
+        private void LatestSetting_OnThresholdChanged(object sender, double e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Threshold"));
+        }
+        private void LatestSetting_OnAccelerometerSensibilityChanged(object sender, (ushort X, ushort Y, ushort Z) e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerometerSensibilityX"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerometerSensibilityY"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerometerSensibilityZ"));
+        }
+        private void LatestSetting_OnAccelerometerZeroChanged(object sender, (ushort X, ushort Y, ushort Z) e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerommeterZeroX"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerommeterZeroY"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("AccelerommeterZeroZ"));
+        }
+
+        private void LatestSetting_OnSerialPortBaudRateChanged(object sender, VR33BSerialPortBaudRate e)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
+        }
+
+
 
         public VR33BConnectionState ConnectionState
         {

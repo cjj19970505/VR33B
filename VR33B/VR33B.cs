@@ -179,6 +179,10 @@ namespace VR33B
         }
         public void Send(VR33BSendData sendData)
         {
+            if(!SerialPort.IsOpen)
+            {
+                return;
+            }
             SerialPort.Write(sendData.SendBytes, 0, sendData.SendBytes.Length);
             OnSerialPortSent?.Invoke(this, sendData);
         }
@@ -467,7 +471,7 @@ namespace VR33B
                 return VR33BSettingResult.Falied;
             }
         }
-        public async Task<VR33BSettingResult> SetAccelerometerRange(VR33BAccelerometerRange accelerometerRange)
+        public async Task<VR33BSettingResult> SetAccelerometerRangeAsync(VR33BAccelerometerRange accelerometerRange)
         {
             var response = await SendCommandAsync(new SetAccelerometerRangeCommand(this, accelerometerRange));
             if (response.Success)
@@ -481,7 +485,55 @@ namespace VR33B
             }
         }
 
-        public async Task<VR33BSettingResult> CalibrateX()
+        public async Task<VR33BReadResult> ReadAllSettingAsync()
+        {
+            var response = await SendCommandAsync(new ReadAllSettingCommand(this));
+            try
+            {
+                var data = response.Response.Data;
+                var baudRate = (VR33BSerialPortBaudRate)data[0];
+                //var checksum = (CheckSo)
+                var workingMode = (VR33BWorkingMode)data[3];
+                int version = data[4] * 10 + data[5];
+                var frequency = (VR33BSampleFrequence)BitConverter.ToInt16(new byte[] { data[7], data[6] }, 0);
+                var range = (VR33BAccelerometerRange)data[8];
+                var xSensibility = BitConverter.ToUInt16(new byte[] { data[10], data[9] }, 0);
+                var xZero = BitConverter.ToUInt16(new byte[] { data[12], data[11] }, 0);
+                var ySensibility = BitConverter.ToUInt16(new byte[] { data[14], data[13] }, 0);
+                var yZero = BitConverter.ToUInt16(new byte[] { data[16], data[15] }, 0);
+                var zSensibility = BitConverter.ToUInt16(new byte[] { data[18], data[17] }, 0);
+                var zZero = BitConverter.ToUInt16(new byte[] { data[20], data[19] }, 0);
+                LatestSetting.AccelerometerSensibility = (xSensibility, ySensibility, zSensibility);
+                LatestSetting.AccelerometerZero = (xZero, yZero, zZero);
+
+                int thresholdInPercent = data[21];
+                double threshold = data[22] / 10.0;
+
+
+                LatestSetting.SampleFrequence = frequency;
+                LatestSetting.AccelerometerRange = range;
+                LatestSetting.ThresholdInPercent = thresholdInPercent;
+                LatestSetting.Threshold = threshold;
+                LatestSetting.SerialPortBaudRate = baudRate;
+
+
+                if (response.Success)
+                {
+                    return VR33BReadResult.Success;
+                }
+                else
+                {
+                    return VR33BReadResult.Failed;
+                }
+            }
+            catch(Exception e)
+            {
+                return VR33BReadResult.Failed;
+            }
+            
+        }
+
+        public async Task<VR33BSettingResult> CalibrateXAsync()
         {
             var response = await SendCommandAsync(new CalibrateXCommand(this));
             if (response.Success)
@@ -494,7 +546,7 @@ namespace VR33B
             }
         }
 
-        public async Task<VR33BSettingResult> CalibrateY()
+        public async Task<VR33BSettingResult> CalibrateYAsync()
         {
             var response = await SendCommandAsync(new CalibrateYCommand(this));
             if (response.Success)
@@ -507,7 +559,7 @@ namespace VR33B
             }
         }
 
-        public async Task<VR33BSettingResult> CalibrateZ()
+        public async Task<VR33BSettingResult> CalibrateZAsync()
         {
             var response = await SendCommandAsync(new CalibrateZCommand(this));
             if (response.Success)
@@ -578,6 +630,14 @@ namespace VR33B
             }
             try
             {
+                lock (_ReceivedBytesBufferLock)
+                {
+                    _ReceivedBytesBuffer.Clear();
+                }
+                lock (_CommandSessionQueueLock)
+                {
+                    _CommandSessionQueue.Clear();
+                }
                 SerialPort.Open();
                 await Task.Run(() =>
                 {
@@ -594,9 +654,11 @@ namespace VR33B
                 }
                 else
                 {
-                    var readAcceRangeResult = (await ReadAccelerometerRangeAsync()).Item1;
-                    var readSampleFrequencyRangeResult = (await ReadSampleFrequencyAsync()).Item1;
-                    if(readAcceRangeResult == VR33BReadResult.Success && readSampleFrequencyRangeResult == VR33BReadResult.Success)
+                    //var readAcceRangeResult = (await ReadAccelerometerRangeAsync()).Item1;
+                    //var readSampleFrequencyRangeResult = (await ReadSampleFrequencyAsync()).Item1;
+                    var readAllSettingResult = await ReadAllSettingAsync();
+                    
+                    if(readAllSettingResult == VR33BReadResult.Success)
                     {
                         ConnectionState = VR33BConnectionState.Success;
                         OnConnectonStateChanged?.Invoke(this, ConnectionState);
@@ -614,11 +676,31 @@ namespace VR33B
             }
             catch(Exception e)
             {
+                if(SerialPort.IsOpen)
+                {
+                    SerialPort.Close();
+                }
                 ConnectionState = VR33BConnectionState.Failed;
                 OnConnectonStateChanged?.Invoke(this, ConnectionState);
                 throw e;
             }
             
+        }
+
+        public async Task<VR33BSettingResult> SetThresholdInPercent(int thresholdInPercent)
+        {
+            var response = await SendCommandAsync(new SetThresholdInPercentCommand(this, thresholdInPercent));
+            if(response.Success)
+            {
+                int receivedThresholdInPercent = response.Response.Data[0];
+                double receivedThreshold = response.Response.Data[1]/10.0;
+                LatestSetting.Threshold = receivedThreshold;
+                return VR33BSettingResult.Succss;
+            }
+            else
+            {
+                return VR33BSettingResult.Falied;
+            }
         }
 
         
@@ -1159,7 +1241,11 @@ namespace VR33B
         {
             if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 2)
             {
-                return true;
+                VR33BSampleFrequence receivedSampleFrequency = (VR33BSampleFrequence)BitConverter.ToInt16(new byte[] { receiveData.Data[1], receiveData.Data[0] }, 0);
+                if(receivedSampleFrequency == SampleFrequency)
+                {
+                    return true;
+                } 
             }
             return false;
         }
@@ -1172,12 +1258,37 @@ namespace VR33B
         public SetSampleFrequencyCommand(VR33BTerminal vr33bTerminal, VR33BSampleFrequence sampleFrequency)
         {
             SampleFrequency = sampleFrequency;
+            UInt16 sampleFrequncyCode;
+            switch(SampleFrequency)
+            {
+                case VR33BSampleFrequence._1Hz:
+                    sampleFrequncyCode = 1;
+                    break;
+                case VR33BSampleFrequence._4Hz:
+                    sampleFrequncyCode = 4;
+                    break;
+                case VR33BSampleFrequence._16Hz:
+                    sampleFrequncyCode = 0x0016;
+                    break;
+                case VR33BSampleFrequence._64Hz:
+                    sampleFrequncyCode = 0x0064;
+                    break;
+                case VR33BSampleFrequence._128Hz:
+                    sampleFrequncyCode = 0x0128;
+                    break;
+                case VR33BSampleFrequence._256Hz:
+                    sampleFrequncyCode = 0x0256;
+                    break;
+                default:
+                    sampleFrequncyCode = 1;
+                    break;
+            }
             var setData = new VR33BSendData
             {
                 DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
                 ReadOrWrite = VR33BMessageType.Write,
                 RegisterAddress = 0x0017,
-                Data = new byte[] { BitConverter.GetBytes((UInt16)SampleFrequency)[1], BitConverter.GetBytes((UInt16)SampleFrequency)[0] }
+                Data = new byte[] { BitConverter.GetBytes(sampleFrequncyCode)[1], BitConverter.GetBytes(sampleFrequncyCode)[0] }
             };
             var readData = new VR33BSendData
             {

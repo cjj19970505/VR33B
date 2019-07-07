@@ -47,7 +47,7 @@ namespace VR33B.LineGraphic
             
             SetAccRangeComboBoxSource = new ObservableCollection<VR33BAccelerometerRange>() { VR33BAccelerometerRange._2g, VR33BAccelerometerRange._4g, VR33BAccelerometerRange._8g, VR33BAccelerometerRange._16g };
             SetAccRangeComboBox.ItemsSource = SetAccRangeComboBoxSource;
-            SetSampleFrequencyComboBoxSource = new ObservableCollection<VR33BSampleFrequence>() { VR33BSampleFrequence._1Hz, VR33BSampleFrequence._5Hz, VR33BSampleFrequence._20Hz, VR33BSampleFrequence._50Hz, VR33BSampleFrequence._100Hz, VR33BSampleFrequence._200Hz };
+            SetSampleFrequencyComboBoxSource = new ObservableCollection<VR33BSampleFrequence>() { VR33BSampleFrequence._1Hz, VR33BSampleFrequence._4Hz, VR33BSampleFrequence._16Hz, VR33BSampleFrequence._64Hz, VR33BSampleFrequence._128Hz, VR33BSampleFrequence._256Hz };
             SetSampleFrequencyComboBox.ItemsSource = SetSampleFrequencyComboBoxSource;
 
 
