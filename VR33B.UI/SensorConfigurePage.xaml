@@ -70,27 +70,8 @@
                                 <ProgressBar Visibility="Collapsed" x:Name="SamplingThresholdRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </Grid>
+
                         <Grid Grid.Row="1" Margin="0, 0, 0, 10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="0.2*"></ColumnDefinition>
-                                <ColumnDefinition Width="0.7*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                <ColumnDefinition Width="0.2*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="当前时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                            <DatePicker x:Name="CurrentDatePicker" Grid.Column="1" Margin="0, 0, 10, 0"/>
-                            <Viewbox Grid.Column="2" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="CurrentDateProgressRing"  Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                            <TextBlock Grid.Column="3" Text="预约时间：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center" ></TextBlock>
-                            <DatePicker x:Name="SessionPicker" Grid.Column="4" Margin="0, 0, 10, 0"/>
-                            <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
-                                <ProgressBar Visibility="Collapsed" x:Name="SessionPickerProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
-                            </Viewbox>
-                        </Grid>
-                        <Grid Grid.Row="2" Margin="0, 0, 0, 10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="0.7*"></ColumnDefinition>
                                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -110,7 +91,7 @@
                                 <ProgressBar Visibility="Collapsed" x:Name="SensorBaudRateProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                         </Grid>
-                        <Grid Grid.Row="3" Margin="0, 0, 0, 10">
+                        <Grid Grid.Row="2" Margin="0, 0, 0, 10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="0.7*"></ColumnDefinition>
                                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -129,6 +110,9 @@
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SensorStopBitProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
+                        </Grid>
+                        <Grid Grid.Row="3" Margin="0, 0, 0, 10">
+                            <Button x:Name="CurrentTimeButton" Content="设置当前时间" Click="CurrentTimeButton_Click"></Button>
                         </Grid>
                     </Grid>
                 </StackPanel>

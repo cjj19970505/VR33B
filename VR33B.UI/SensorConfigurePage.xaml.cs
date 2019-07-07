@@ -50,18 +50,19 @@ namespace VR33B.UI
 
         private async void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
+            DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
+            dataConfigurationWindow.Show();
 
-            if(SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
+            if (SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
             {
                 try
                 {
                     await SettingViewModel.VR33BTerminal.ConnectAsync();
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
                     System.Diagnostics.Debug.WriteLine(exception);
                 }
-                
             }
         }
 
@@ -115,6 +116,12 @@ namespace VR33B.UI
             SamplingThresholdRing.Visibility = Visibility.Visible;
             var reponse = await SettingViewModel.VR33BTerminal.SetThresholdInPercent((int)SamplingThresholdSlider.Value);
             await Dispatcher.InvokeAsync(() => { SamplingThresholdRing.Visibility = Visibility.Collapsed; });
+        }
+
+        private void CurrentTimeButton_Click(object sender, RoutedEventArgs e)
+        {
+            DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
+            dataConfigurationWindow.Show();
         }
     }
 
