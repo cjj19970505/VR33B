@@ -236,7 +236,7 @@ namespace VR33B.Storage
                         }
                         inMemoryQueryResult.AddRange(
                             (from entity in _InMemoryBuffer
-                             where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime
+                             where entity.SampleProcessGuid == _CurrentSampleProcess.Guid && entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime
                              select entity.ToStruct()).ToList()
                             );
                     }
@@ -253,7 +253,7 @@ namespace VR33B.Storage
                             System.Diagnostics.Debug.WriteLine("BEGIN QUERY FROM DB");
                             inDatabaseQueryResult.AddRange(
                                 (from entity in dbcontext.SampleValueEntities
-                                 where entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime && entity.SampleProcessGuid == _CurrentSampleProcess.Guid
+                                 where entity.SampleProcessGuid == _CurrentSampleProcess.Guid && entity.SampleDateTime >= startDateTime && entity.SampleDateTime <= endDateTime
                                  select entity.ToStruct()).ToList()
                                 );
                             System.Diagnostics.Debug.WriteLine("QUERY FROM DB TAKES " + (DateTime.Now - beforeReadDateTime).TotalMilliseconds + "Ms");
@@ -302,7 +302,7 @@ namespace VR33B.Storage
                             inDatabaseQueryNeeded = false;
                         }
                         inMemoryQueryResult = (from entity in _InMemoryBuffer
-                                               where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
+                                               where entity.SampleProcessGuid == _CurrentSampleProcess.Guid && entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
                                                select entity.ToStruct()).ToList();
                         inMemoryQueryResult.Sort((value1, value2) =>
                         {
@@ -331,7 +331,7 @@ namespace VR33B.Storage
                         _DataContextLock.EnterReadLock();
                         {
                             inDatabaseQueryResult.AddRange((from entity in dbcontext.SampleValueEntities
-                                                            where entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
+                                                            where entity.SampleProcessGuid == _CurrentSampleProcess.Guid && entity.SampleIndex >= minIndex && entity.SampleIndex <= maxIndex
                                                             select entity.ToStruct()).ToList());
                         }
                         _DataContextLock.ExitReadLock();
