@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,21 +20,27 @@ namespace VR33B.UI
     /// </summary>
     public partial class DataConfigurationWindow : Window
     {
+        public DateTime SelectedDateTime { get; private set; }
         public DataConfigurationWindow()
         {
             InitializeComponent();
+            CombinedClock.Time = DateTime.Now;
+            CombinedCalendar.SelectedDate = DateTime.Now;
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
             var date = CombinedCalendar.SelectedDate.Value;
             var time = CombinedClock.Time;
-
+            SelectedDateTime = time;
+            DialogResult = true;
+            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            DialogResult = false;
+            Close();
         }
     }
 }

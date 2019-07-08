@@ -16,8 +16,8 @@
                 </Viewbox>
                 <Viewbox>
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Name="CancelButton" Content="取消" Margin="10" Click="CancelButton_Click"></Button>
-                        <Button x:Name="OkButton" Content="确定" Margin="10" Click="OkButton_Click"></Button>
+                        <Button x:Name="CancelButton" Content="取消" Margin="10" Click="CancelButton_Click" IsCancel="True"></Button>
+                        <Button x:Name="OkButton" Content="确定" Margin="10" Click="OkButton_Click" IsDefault="True"></Button>
                     </StackPanel>
                 </Viewbox>
             </StackPanel>

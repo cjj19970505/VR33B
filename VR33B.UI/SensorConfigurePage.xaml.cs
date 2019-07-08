@@ -44,8 +44,6 @@ namespace VR33B.UI
 
         private async void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
-            DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
-            dataConfigurationWindow.Show();
 
             if (SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
             {
@@ -117,9 +115,12 @@ namespace VR33B.UI
         private void CurrentTimeButton_Click(object sender, RoutedEventArgs e)
         {
             DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
-            dataConfigurationWindow.Show();
+            var result = dataConfigurationWindow.ShowDialog();
+            if(result.Value)
+            {
+                System.Diagnostics.Debug.WriteLine(dataConfigurationWindow.SelectedDateTime);
+            }
         }
-        =======
         private bool _AddressSetting = false;
         private async void AddressBox_KeyDown(object sender, KeyEventArgs e)
         {
