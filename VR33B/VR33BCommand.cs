@@ -400,4 +400,40 @@ namespace VR33B
             SendDataSequence = new (VR33BSendData, TimeSpan)[] { (yearMonthData, TimeSpan.FromMilliseconds(500)), (dayHourData, TimeSpan.FromMilliseconds(500)), (minuteSecondData, TimeSpan.FromMilliseconds(500)) };
         }
     }
+
+    public class SetBaudRateCommand : ICommand
+    {
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence { get; }
+
+        public bool IsResponse(VR33BReceiveData receiveData)
+        {
+            return true;
+        }
+
+        public bool OnTimeout()
+        {
+            return true;
+        }
+
+        public SetBaudRateCommand(VR33BTerminal vr33bTerminal, VR33BSerialPortBaudRate baudRate)
+        {
+            var sendData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0002,
+                Data = new byte[] { 0, (byte)baudRate }
+            };
+
+            SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, TimeSpan.FromMilliseconds(500)) };
+        }
+    }
 }
