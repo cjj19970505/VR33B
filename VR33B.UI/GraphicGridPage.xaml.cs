@@ -34,12 +34,13 @@ namespace VR33B.UI
                 ViewModel.VR33BTerminal = value;
                 VR33BOxyPlotControl.VR33BTerminal = _VR33BTerminal;
                 SampleListControl.VR33BTerminal = _VR33BTerminal;
+                
             }
         }
         public GraphicGridPage()
         {
             InitializeComponent();
-            
+            SampleListControl.ViewModel.OxyPlotControl = VR33BOxyPlotControl;
         }
 
         private void SampleListControl_OnSampleValueSelectionChanged(object sender, VR33BSampleValue? e)

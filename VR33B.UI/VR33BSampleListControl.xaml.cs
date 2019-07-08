@@ -35,12 +35,10 @@ namespace VR33B.UI
             {
                 if(_VR33BTerminal == null && IsLoaded)
                 {
-                    _VR33BTerminal.VR33BSampleDataStorage.Updated -= VR33BSampleDataStorage_Updated;
                 }
                 _VR33BTerminal = value;
                 if(IsLoaded)
                 {
-                    _VR33BTerminal.VR33BSampleDataStorage.Updated += VR33BSampleDataStorage_Updated;
                 }
                 
             }
@@ -57,157 +55,11 @@ namespace VR33B.UI
         private DateTime _LatestUpdataDataGridDateTime;
 
         public event EventHandler<VR33BSampleValue?> OnSampleValueSelectionChanged;
-        public event EventHandler FilterChanged;
         
         
         public VR33BSampleListControl()
         {
             InitializeComponent();
-            FilterChanged += VR33BSampleListControl_FilterChanged;
-        }
-
-        private async void VR33BSampleListControl_FilterChanged(object sender, EventArgs e)
-        {
-            ViewModel.DataGridItemSource.Clear();
-
-            long minIndex = ViewModel.MinFilterIndex;
-
-            var indexFilteredSampleValues = await _VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(minIndex, ViewModel.MaxFilterIndex);
-            var filteredSampleValues = new List<VR33BSampleValue>();
-            foreach(var sampleValue in indexFilteredSampleValues)
-            {
-                if(await _FilterAsync(sampleValue))
-                {
-                    filteredSampleValues.Add(sampleValue);
-                }
-            }
-            if (filteredSampleValues.Count > 0)
-            {
-                _LatestAddedToDataGridSampleValue = filteredSampleValues.Last();
-
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    foreach (var value in filteredSampleValues)
-                    {
-                        ViewModel.DataGridItemSource.Add(value);
-                    }
-                });
-            }
-        }
-        private VR33BSampleValue _LatestAddedToDataGridSampleValue;
-        private async void VR33BSampleDataStorage_Updated(object sender, VR33BSampleValue e)
-        {
-            bool filterResult = true;
-            if(e.SampleIndex == 0)
-            {
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    ViewModel.DataGridItemSource.Clear();
-                });
-            }
-            if (ViewModel.DataGridItemSource.Count > 0)
-            {
-                filterResult = _Filter(_LatestAddedToDataGridSampleValue);
-            }
-            if(DateTime.Now - _LatestUpdataDataGridDateTime > _UpdateInterval && filterResult)
-            {
-                _LatestUpdataDataGridDateTime = DateTime.Now;
-                long minIndex = ViewModel.MinFilterIndex;
-                if(ViewModel.DataGridItemSource.Count > 0)
-                {
-                    minIndex = Math.Max(ViewModel.MinFilterIndex, _LatestAddedToDataGridSampleValue.SampleIndex + 1);
-                }
-                
-                var indexFilteredSampleValues = await _VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(minIndex, ViewModel.MaxFilterIndex);
-                var filteredSampleValues = (from sampleValue in indexFilteredSampleValues
-                                           where _Filter(sampleValue)
-                                           select sampleValue).ToArray();
-                if(filteredSampleValues.Length > 0)
-                {
-                    _LatestAddedToDataGridSampleValue = filteredSampleValues.Last();
-
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        
-                        foreach (var value in filteredSampleValues)
-                        {
-                            if(ViewModel.DataGridItemSource.Count > 0 && ViewModel.DataGridItemSource.Last().SampleIndex >= value.SampleIndex)
-                            {
-                                
-                            }
-                            else
-                            {
-                                ViewModel.DataGridItemSource.Add(value);
-                            }
-                            
-                        }
-                    });
-                }
-                
-            }
-            
-        }
-
-        private bool _Filter(VR33BSampleValue sampleValue)
-        {
-            bool indexRangeFilter = false;
-            if(sampleValue.SampleIndex >= ViewModel.MinFilterIndex && sampleValue.SampleIndex <= ViewModel.MaxFilterIndex)
-            {
-                indexRangeFilter = true;
-            }
-            bool overLoadFilter = true;
-            if(sampleValue.SampleIndex < 3 && ViewModel.OverloadFilter)
-            {
-                overLoadFilter = false;
-            }
-            if(sampleValue.SampleIndex > 3 && ViewModel.OverloadFilter)
-            {
-                var queryTask = VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(sampleValue.SampleIndex - 2, sampleValue.SampleIndex - 1);
-                queryTask.Wait();
-                var result = queryTask.Result;
-                TimeSpan ts1 = result[1].SampleDateTime - result[0].SampleDateTime;
-                TimeSpan ts2 = sampleValue.SampleDateTime - result[1].SampleDateTime;
-                if(ts1.TotalMilliseconds > ts2.TotalMilliseconds*1.5)
-                {
-                    overLoadFilter = true;
-                }
-                else
-                {
-                    overLoadFilter = false;
-                }
-            }
-
-            return indexRangeFilter && overLoadFilter;
-        }
-
-        private async Task<bool> _FilterAsync(VR33BSampleValue sampleValue)
-        {
-            bool indexRangeFilter = false;
-            if (sampleValue.SampleIndex >= ViewModel.MinFilterIndex && sampleValue.SampleIndex <= ViewModel.MaxFilterIndex)
-            {
-                indexRangeFilter = true;
-            }
-            bool overLoadFilter = true;
-            if (sampleValue.SampleIndex < 3 && ViewModel.OverloadFilter)
-            {
-                overLoadFilter = false;
-            }
-            if (sampleValue.SampleIndex > 3 && ViewModel.OverloadFilter)
-            {
-                var result = await VR33BTerminal.VR33BSampleDataStorage.GetFromSampleIndexRangeAsync(sampleValue.SampleIndex - 2, sampleValue.SampleIndex - 1);
-                TimeSpan ts1 = result[1].SampleDateTime - result[0].SampleDateTime;
-                TimeSpan ts2 = sampleValue.SampleDateTime - result[1].SampleDateTime;
-                if (ts1.TotalMilliseconds > ts2.TotalMilliseconds * 1.5)
-                {
-                    overLoadFilter = true;
-                }
-                else
-                {
-                    overLoadFilter = false;
-                }
-            }
-
-            return indexRangeFilter && overLoadFilter;
         }
 
         private void SampleDataGrid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
@@ -219,40 +71,13 @@ namespace VR33B.UI
             
         }
 
-        private void MinIndexFilterTextBox_LostFocus(object sender, RoutedEventArgs e)
+        private async void FilterButton_Click(object sender, RoutedEventArgs e)
         {
-            var parseSuccess = long.TryParse(MinIndexFilterTextBox.Text, out long minIndex);
-            if(parseSuccess)
+            var queryResult = await VR33BTerminal.VR33BSampleDataStorage.QueryAsync(ViewModel.GetFilteredEnumerable);
+            ViewModel.DataGridItemSource.Clear();
+            foreach(var sampleValue in queryResult)
             {
-                ViewModel.MinFilterIndex = minIndex;
-            }
-            FilterChanged?.Invoke(this, null);
-        }
-
-        private void MaxIndexFilterTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            var parseSuccess = long.TryParse(MaxIndexFilterTextBox.Text, out long maxIndex);
-            if (parseSuccess)
-            {
-                ViewModel.MaxFilterIndex = maxIndex;
-            }
-            FilterChanged?.Invoke(this, null);
-        }
-
-        private void OverloadCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            FilterChanged?.Invoke(this, null);
-        }
-
-        private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if((bool)e.NewValue)
-            {
-                _VR33BTerminal.VR33BSampleDataStorage.Updated += VR33BSampleDataStorage_Updated;
-            }
-            else
-            {
-                _VR33BTerminal.VR33BSampleDataStorage.Updated -= VR33BSampleDataStorage_Updated;
+                ViewModel.DataGridItemSource.Add(sampleValue);
             }
         }
     }
@@ -302,6 +127,117 @@ namespace VR33B.UI
                 _OverloadFilter = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("OverloadFilter"));
             }
+        }
+
+        private bool _FilterFromIndex;
+        public bool FilterFromIndex
+        {
+            get
+            {
+                return _FilterFromIndex;
+            }
+            set
+            {
+                _FilterFromIndex = value;
+                if(value)
+                {
+                    FilterFromRectBar = false;
+                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FilterFromIndex"));
+            }
+        }
+
+        private bool _FilterFromRectBar;
+        public bool FilterFromRectBar
+        {
+            get
+            {
+                return _FilterFromRectBar;
+            }
+            set
+            {
+                _FilterFromRectBar = value;
+                if(value)
+                {
+                    FilterFromIndex = false;
+                }
+                
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FilterFromRectBar"));
+            }
+        }
+
+        private bool _FilterFromSampleTimeSpan;
+        public bool FilterFromSampleTimeSpan
+        {
+            get
+            {
+                return _FilterFromSampleTimeSpan;
+            }
+            set
+            {
+                _FilterFromSampleTimeSpan = value;
+
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("FilterFromSampleTimeSpan"));
+            }
+        }
+
+        public double _MinSampleTimeSpan;
+        public double MinSampleTimeSpan
+        {
+            get
+            {
+                return _MinSampleTimeSpan;
+            }
+
+            set
+            {
+                _MinSampleTimeSpan = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MinSampleTimeSpan"));
+            }
+        }
+
+        public double _MaxSampleTimeSpan;
+        public double MaxSampleTimeSpan
+        {
+            get
+            {
+                return _MaxSampleTimeSpan;
+            }
+
+            set
+            {
+                _MaxSampleTimeSpan = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("MaxSampleTimeSpan"));
+            }
+        }
+
+        public VR33BOxyPlotControl OxyPlotControl { get; set; }
+
+        public IEnumerable<VR33BSampleValue> GetFilteredEnumerable(IEnumerable<VR33BSampleValue> allSample)
+        {
+            var filtered = allSample;
+            if(FilterFromIndex)
+            {
+                filtered = from sampleValue in filtered
+                           where sampleValue.SampleIndex >= MinFilterIndex && sampleValue.SampleIndex <= MaxFilterIndex
+                           select sampleValue;
+            }
+            if(_FilterFromSampleTimeSpan)
+            {
+                filtered = from sampleValue in filtered
+                           where sampleValue.SampleTimeSpanInMs >= MinSampleTimeSpan && sampleValue.SampleTimeSpanInMs <= MaxSampleTimeSpan
+                           select sampleValue;
+            }
+            if(_FilterFromRectBar)
+            {
+                filtered = from sampleValue in filtered
+                           where sampleValue.SampleDateTime >= OxyPlotControl.SelectedDateTimeRange.Start && sampleValue.SampleDateTime <= OxyPlotControl.SelectedDateTimeRange.End
+                           select sampleValue;
+            }
+            return filtered;
+            
+
+            
         }
         public VR33BSampleListControlViewModel()
         {

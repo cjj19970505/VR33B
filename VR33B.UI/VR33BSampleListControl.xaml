@@ -5,8 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VR33B.UI"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
-             IsVisibleChanged="UserControl_IsVisibleChanged">
+             d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.DataContext>
         <local:VR33BSampleListControlViewModel x:Name="ViewModel"/>
     </UserControl.DataContext>
@@ -17,11 +16,21 @@
         </Grid.RowDefinitions>
 
         <Expander Header="筛选" Grid.Row="0">
-            <StackPanel Orientation="Horizontal">
-                <Grid>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <CheckBox x:Name="FilterFromIndexCheckBox" Grid.Row="0" Grid.Column="0" Content="通过索引过滤" IsChecked="{Binding Path=FilterFromIndex, Mode=TwoWay}"/>
+                <Grid Grid.Row="1" Grid.Column="0" IsEnabled="{Binding ElementName=FilterFromIndexCheckBox, Path=IsChecked, Mode=OneWay}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="50"/>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
@@ -32,13 +41,30 @@
                     </Grid.RowDefinitions>
 
                     <Label Content="Min Index" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MinIndexFilterTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center" LostFocus="MinIndexFilterTextBox_LostFocus"/>
+                    <TextBox x:Name="MinIndexFilterTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
                     <Label Content="Max Index" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MaxIndexFilterTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center" LostFocus="MaxIndexFilterTextBox_LostFocus"/>
-                    <CheckBox x:Name="OverloadCheckBox" Content="异常点" Margin="10" Grid.Column="2" HorizontalAlignment="Center" IsChecked="{Binding Path=OverloadFilter}" Checked="OverloadCheckBox_Checked"/>
-                    <Button x:Name="FilterButton" Content="过滤" Grid.Column="2" Grid.Row="1" Margin="20" HorizontalAlignment="Center"/>
+                    <TextBox x:Name="MaxIndexFilterTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
                 </Grid>
-            </StackPanel>
+
+                <CheckBox x:Name="FilterFromSampleTimeSpanCheckBox" Content="通过采样周期过滤" Grid.Row="0" Grid.Column="1" IsChecked="{Binding Path=FilterFromSampleTimeSpan, Mode=TwoWay}"/>
+                <Grid Grid.Row="1" Grid.Column="1" IsEnabled="{Binding ElementName=FilterFromSampleTimeSpanCheckBox, Path=IsChecked, Mode=OneWay}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="50"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Content="最小采样周期（ms）" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MinTimeSpanTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinSampleTimeSpan, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
+                    <Label Content="最大采样周期（ms）" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MaxTimeSpanTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxSampleTimeSpan, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
+                </Grid>
+                <CheckBox x:Name="FilterFromRectBarCheckBox" Grid.Row="0" Grid.Column="2" Content="通过选择的区域过滤" IsChecked="{Binding Path=FilterFromRectBar, Mode=TwoWay}"/>
+                <Button x:Name="FilterButton" Content="过滤" Grid.Column="2" Grid.Row="1" Margin="20" HorizontalAlignment="Stretch" Click="FilterButton_Click"/>
+            </Grid>
         </Expander>
         <DataGrid x:Name="SampleDataGrid" AutoGenerateColumns="False" ItemsSource="{Binding Path=DataGridItemSource, Mode=OneWay}" SelectionMode="Single"
                   SelectedCellsChanged="SampleDataGrid_SelectedCellsChanged"
