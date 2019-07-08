@@ -71,7 +71,7 @@ namespace VR33B.LineGraphic
 
         private void _VR33BTerminal_OnVR33BSampleStarted(object sender, VR33BSampleProcess e)
         {
-            OxyPlotModel.Title = e.Guid.ToString();
+            OxyPlotModel.Title = e.Name.ToString();
             _LoadedSampleValues = new VR33BSampleValue[0];
             TimeSpanPlotAxis.Pan((((_LatestPlotAxisActualMinMax.ActualMaximum - _LatestPlotAxisActualMinMax.ActualMinimum) * 0.5 + _LatestPlotAxisActualMinMax.ActualMinimum) - 0) * TimeSpanPlotAxis.Scale);
             OxyPlotView.InvalidatePlot();

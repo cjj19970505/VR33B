@@ -16,5 +16,7 @@ namespace VR33B
 
         Task<List<VR33BSampleValue>> QueryAsync(VR33BSampleValueQueryDelegate queryFunc);
 
+        Task<List<VR33BSampleProcess>> GetAllSampleProcessAsync();
+
     }
 }

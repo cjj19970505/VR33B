@@ -357,13 +357,25 @@ namespace VR33B
             {
                 return true;
             }
+            var allProcesses = await VR33BSampleDataStorage.GetAllSampleProcessAsync();
+            var allProcessesName = from process in allProcesses
+                                   select process.Name;
+
+            int sampleIndex = 0;
+            while (allProcessesName.Contains(SampleNamePrefix + sampleIndex))
+            {
+                sampleIndex++;
+            }
+            string processName = SampleNamePrefix + sampleIndex;
+
             var response = await SendCommandAsync(new StartSampleCommand(this));
             if (response.Success)
             {
                 Sampling = true;
+                
                 _CurrentSampleProcess = new VR33BSampleProcess
                 {
-                    Name = "Sample",
+                    Name = processName,
                     Guid = Guid.NewGuid()
                 };
                 OnVR33BSampleStarted?.Invoke(this, _CurrentSampleProcess);
@@ -1286,7 +1298,13 @@ namespace VR33B
                 RegisterAddress = 0x0017,
                 Data = new byte[] { 0, 0 }
             };
-            _SendDataSequence = new (VR33BSendData, TimeSpan)[] { (sendData, new TimeSpan(0, 0, 0, 0, 50)), (sendData, new TimeSpan(0, 0, 0, 0, 50)), (confirmSendData, new TimeSpan(0, 0, 0, 0, 50)) };
+            List<(VR33BSendData, TimeSpan)> sendDataSquenceList = new List<(VR33BSendData, TimeSpan)>();
+            for(int i = 0; i<10;i++)
+            {
+                sendDataSquenceList.Add((sendData, new TimeSpan(0, 0, 0, 0, 100)));
+            }
+            sendDataSquenceList.Add((confirmSendData, new TimeSpan(0, 0, 0, 0, 300)));
+            _SendDataSequence = sendDataSquenceList.ToArray();
         }
     }
 

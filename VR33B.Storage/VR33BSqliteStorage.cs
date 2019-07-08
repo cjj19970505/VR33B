@@ -374,6 +374,7 @@ namespace VR33B.Storage
             {
                 _InMemoryBufferLock.EnterReadLock();
                 var inMemoryStructBuffer = from entity in _InMemoryBuffer
+                                           where entity.SampleProcessGuid == _CurrentSampleProcess.Guid
                                            select entity.ToStruct();
                 var inMemoryResult = queryFunc(inMemoryStructBuffer).ToList();
                 _InMemoryBufferLock.ExitReadLock();
@@ -385,12 +386,13 @@ namespace VR33B.Storage
                     if(inMemoryResult.Count > 0)
                     {
                         inDBStructBuffer = from entity in dbcontext.SampleValueEntities
-                                           where entity.SampleIndex < inMemoryResult.First().SampleIndex
+                                           where entity.SampleProcessGuid == _CurrentSampleProcess.Guid && entity.SampleIndex < inMemoryResult.First().SampleIndex
                                            select entity.ToStruct();
                     }
                     else
                     {
                         inDBStructBuffer = from entity in dbcontext.SampleValueEntities
+                                           where entity.SampleProcessGuid == _CurrentSampleProcess.Guid
                                            select entity.ToStruct();
                     }
                     inDBResult = queryFunc(inDBStructBuffer).ToList();
@@ -419,6 +421,20 @@ namespace VR33B.Storage
                 return result;
             });
 
+        }
+
+        public async Task<List<VR33BSampleProcess>> GetAllSampleProcessAsync()
+        {
+            
+            using(VR33BSqliteStorageContext dbContext = new VR33BSqliteStorageContext())
+            {
+                _DataContextLock.EnterReadLock();
+                var result = await (from entity in dbContext.SampleProcessEntities
+                                    select entity.ToStruct()).ToListAsync();
+                _DataContextLock.ExitReadLock();
+                return result;
+            }
+            
         }
     }
 

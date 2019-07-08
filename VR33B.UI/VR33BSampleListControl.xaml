@@ -83,7 +83,7 @@
                   Grid.Row="1">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="索引" Binding="{Binding Path=SampleIndex}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
-                <DataGridTextColumn Header="采样时间" Binding="{Binding Path=SampleDateTime, StringFormat=yyyy-MM-dd}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
+                <DataGridTextColumn Header="采样时间" Binding="{Binding Path=SampleDateTime, StringFormat=yyyy/MM/dd:HH:mm:ss.fff}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
                 <DataGridTextColumn Header="加速度" Binding="{Binding Path=AccelerometerValue}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
                 <DataGridTextColumn Header="温度" Binding="{Binding Path=Temperature}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
                 <DataGridTextColumn Header="湿度" Binding="{Binding Path=Humidity}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
