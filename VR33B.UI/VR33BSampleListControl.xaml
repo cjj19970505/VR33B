@@ -9,6 +9,10 @@
     <UserControl.DataContext>
         <local:VR33BSampleListControlViewModel x:Name="ViewModel"/>
     </UserControl.DataContext>
+    <UserControl.Resources>
+        <local:LongToStringConverter x:Key="LongToStringConverter"/>
+        <local:DoubleToStringConverter x:Key="DoubleToStringConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -41,9 +45,11 @@
                     </Grid.RowDefinitions>
 
                     <Label Content="Min Index" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MinIndexFilterTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MinIndexFilterTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinFilterIndex,Converter={StaticResource ResourceKey=LongToStringConverter},Mode=TwoWay}" Margin="5" VerticalAlignment="Center" 
+                             PreviewTextInput="IndexFilterTextBox_PreviewTextInput"/>
                     <Label Content="Max Index" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MaxIndexFilterTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxFilterIndex, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MaxIndexFilterTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxFilterIndex,Converter={StaticResource ResourceKey=LongToStringConverter},Mode=TwoWay}" Margin="5" VerticalAlignment="Center"
+                             PreviewTextInput="IndexFilterTextBox_PreviewTextInput"/>
                 </Grid>
 
                 <CheckBox x:Name="FilterFromSampleTimeSpanCheckBox" Content="通过采样周期过滤" Grid.Row="0" Grid.Column="1" IsChecked="{Binding Path=FilterFromSampleTimeSpan, Mode=TwoWay}"/>
@@ -58,11 +64,11 @@
                     </Grid.RowDefinitions>
 
                     <Label Content="最小采样周期（ms）" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MinTimeSpanTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinSampleTimeSpan, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MinTimeSpanTextBox" Grid.Row="0" Grid.Column="1" Text="{Binding Path=MinSampleTimeSpan, Converter={StaticResource ResourceKey=DoubleToStringConverter} ,Mode=TwoWay}" Margin="5" VerticalAlignment="Center" PreviewTextInput="TimeSpanTextBox_PreviewTextInput"/>
                     <Label Content="最大采样周期（ms）" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-                    <TextBox x:Name="MaxTimeSpanTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxSampleTimeSpan, Mode=OneWay}" Margin="5" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MaxTimeSpanTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxSampleTimeSpan, Converter={StaticResource ResourceKey=DoubleToStringConverter}, Mode=TwoWay}" Margin="5" VerticalAlignment="Center" PreviewTextInput="TimeSpanTextBox_PreviewTextInput"/>
                 </Grid>
-                <CheckBox x:Name="FilterFromRectBarCheckBox" Grid.Row="0" Grid.Column="2" Content="通过选择的区域过滤" IsChecked="{Binding Path=FilterFromRectBar, Mode=TwoWay}"/>
+                <CheckBox x:Name="FilterFromRectBarCheckBox" Grid.Row="0" Grid.Column="2" Content="通过选择区域过滤" IsChecked="{Binding Path=FilterFromRectBar, Mode=TwoWay}"/>
                 <Button x:Name="FilterButton" Content="过滤" Grid.Column="2" Grid.Row="1" Margin="20" HorizontalAlignment="Stretch" Click="FilterButton_Click"/>
             </Grid>
         </Expander>

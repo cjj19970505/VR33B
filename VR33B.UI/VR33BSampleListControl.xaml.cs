@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -78,6 +80,35 @@ namespace VR33B.UI
             foreach(var sampleValue in queryResult)
             {
                 ViewModel.DataGridItemSource.Add(sampleValue);
+            }
+        }
+
+        private void IndexFilterTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            
+            Regex addTextMatch = new Regex(@"^[0-9]+$");
+            if (!addTextMatch.IsMatch(e.Text))
+            {
+                e.Handled = true;
+            }
+            
+        }
+
+        private void TimeSpanTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            
+            if ((sender as TextBox).Text.Contains("."))
+            {
+                if(e.Text.Contains("."))
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
+            Regex addTextMatch = new Regex(@"^[0-9.]+$");
+            if (!addTextMatch.IsMatch(e.Text))
+            {
+                e.Handled = true;
             }
         }
     }
@@ -211,6 +242,19 @@ namespace VR33B.UI
             }
         }
 
+        public string _TestBoxBinding;
+        public string TestBoxBinding
+        {
+            get
+            {
+                return _TestBoxBinding;
+            }
+            set
+            {
+                _TestBoxBinding = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("TestBoxBinding"));
+            }
+        }
         public VR33BOxyPlotControl OxyPlotControl { get; set; }
 
         public IEnumerable<VR33BSampleValue> GetFilteredEnumerable(IEnumerable<VR33BSampleValue> allSample)
@@ -236,8 +280,6 @@ namespace VR33B.UI
             }
             return filtered;
             
-
-            
         }
         public VR33BSampleListControlViewModel()
         {
@@ -246,7 +288,50 @@ namespace VR33B.UI
             DataGridItemSource = new ObservableCollection<VR33BSampleValue>();
             _DataGridItemSourceLock = new object();
         }
+    }
+    internal class LongToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            long number = (long)value;
+            return value.ToString();
+        }
 
-        
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            string str = (string)value;
+            bool canConvert = long.TryParse(str, out long number);
+            if (canConvert)
+            {
+                return number;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+    }
+
+    internal class DoubleToStringConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            double number = (double)value;
+            return value.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            string str = (string)value;
+            bool canConvert = double.TryParse(str, out double number);
+            if (canConvert)
+            {
+                return number;
+            }
+            else
+            {
+                return 0;
+            }
+        }
     }
 }
