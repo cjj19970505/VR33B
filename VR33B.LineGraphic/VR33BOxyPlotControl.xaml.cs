@@ -34,7 +34,9 @@ namespace VR33B.LineGraphic
         public LineSeries ZLineSeries { get; }
 
         public LineSeries IndicatorSeries { get; }
+        RectangleBarSeries SelectRangeBarSeries { get; }
         public TimeSpanAxis TimeSpanPlotAxis { get; }
+        public Axis AmpPlotAxis { get; }
 
         private VR33BTerminal _VR33BTerminal;
         public VR33BTerminal VR33BTerminal
@@ -243,6 +245,17 @@ namespace VR33B.LineGraphic
 
         public bool Inited { get; private set; }
 
+        public (DateTime Start, DateTime End) SelectedDateTimeRange
+        {
+            get
+            {
+                var rect = SelectRangeBarSeries.Items[0];
+                var start = _FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(Math.Min(rect.X0, rect.X1)));
+                var end = _FirstSampleDateTime.Add(TimeSpanAxis.ToTimeSpan(Math.Max(rect.X0, rect.X1)));
+                return (start, end);
+            }
+        }
+
         public VR33BOxyPlotControl()
         {
             InitializeComponent();
@@ -303,6 +316,13 @@ namespace VR33B.LineGraphic
             IndicatorSeries.Title = "Indicator";
             IndicatorSeries.StrokeThickness = 1;
 
+            SelectRangeBarSeries = new RectangleBarSeries();
+            SelectRangeBarSeries.Items.Add(new RectangleBarItem(0, 0, 0, 10));
+            SelectRangeBarSeries.Selectable = false;
+            SelectRangeBarSeries.FillColor = Color.FromArgb(20, 0, 0, 0).ToOxyColor();
+
+
+            OxyPlotModel.Series.Add(SelectRangeBarSeries);
             OxyPlotModel.Series.Add(XLineSeries);
             OxyPlotModel.Series.Add(YLineSeries);
             OxyPlotModel.Series.Add(ZLineSeries);
@@ -312,16 +332,41 @@ namespace VR33B.LineGraphic
             YAxisLegendView.DataContext = YLineSeries;
             ZAxisLegendView.DataContext = ZLineSeries;
 
+            
+
             TimeSpanPlotAxis = new TimeSpanAxis { Position = AxisPosition.Bottom, Minimum = TimeSpanAxis.ToDouble(new TimeSpan(0, 0, -1)), Maximum = TimeSpanAxis.ToDouble(new TimeSpan(0, 0, 1)) };
             OxyPlotModel.Axes.Add(TimeSpanPlotAxis);
 
-            var AmpPlotAxis = new LinearAxis { Position = AxisPosition.Left, Minimum = -1, Maximum = 1 };
+            AmpPlotAxis = new LinearAxis { Position = AxisPosition.Left, Minimum = -1, Maximum = 1 };
             OxyPlotModel.Axes.Add(AmpPlotAxis);
             OxyPlotModel.Updating += OxyPlotModel_Updating;
             OxyPlotModel.Updated += OxyPlotModel_Updated;
 
+            OxyPlotModel.MouseDown += OxyPlotModel_MouseDown;
             IsVisibleChanged += VR33BOxyPlotControl_IsVisibleChanged;
             TrackingModeOn = true;
+        }
+        
+        private void OxyPlotModel_MouseDown(object sender, OxyMouseDownEventArgs e)
+        {
+            PlotModel plot = sender as PlotModel;
+            DataPoint p = OxyPlot.Axes.Axis.InverseTransform(e.Position, TimeSpanPlotAxis, AmpPlotAxis);
+            if(!e.IsAltDown)
+            {
+                return;
+            }
+
+            var rect = SelectRangeBarSeries.Items[0];
+            if(e.ChangedButton == OxyMouseButton.Left)
+            {
+                rect.X0 = p.X;
+            }
+            else if(e.ChangedButton == OxyMouseButton.Right)
+            {
+                rect.X1 = p.X;
+            }
+            SelectRangeBarSeries.Items[0] = rect;
+            OxyPlotView.InvalidatePlot();
         }
 
         private void VR33BOxyPlotControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -351,10 +396,15 @@ namespace VR33B.LineGraphic
         {
             _LatestBeginPlotDateTime = DateTime.Now;
             _LatestPlotAxisActualMinMax = (TimeSpanPlotAxis.ActualMinimum, TimeSpanPlotAxis.ActualMaximum);
+            var rect = SelectRangeBarSeries.Items[0];
+            rect.Y0 = AmpPlotAxis.ActualMinimum;
+            rect.Y1 = AmpPlotAxis.ActualMaximum;
+            SelectRangeBarSeries.Items[0] = rect;
             if (!Inited)
             {
                 return;
             }
+
 
             if (TrackingModeOn && VR33BTerminal.Sampling)
             {
@@ -389,6 +439,17 @@ namespace VR33B.LineGraphic
             OxyPlotView.InvalidatePlot(true);
         }
 
+
+        private void SelectedRangeColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool ok = ColorPickerWPF.ColorPickerWindow.ShowDialog(out Color color);
+            if (ok)
+            {
+                SelectRangeBarSeries.FillColor = color.ToOxyColor();
+                SelectedRangeColorButton.Background = new SolidColorBrush(color);
+                OxyPlotView.InvalidatePlot(false);
+            }
+        }
     }
 
     public struct VR33BOxyPlotSetting
