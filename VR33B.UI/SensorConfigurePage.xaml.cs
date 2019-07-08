@@ -44,18 +44,19 @@ namespace VR33B.UI
 
         private async void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
+            DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
+            dataConfigurationWindow.Show();
 
-            if(SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
+            if (SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.NotConnected || SettingViewModel.VR33BTerminal.ConnectionState == VR33BConnectionState.Failed)
             {
                 try
                 {
                     await SettingViewModel.VR33BTerminal.ConnectAsync();
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
                     System.Diagnostics.Debug.WriteLine(exception);
                 }
-                
             }
         }
 
@@ -111,6 +112,14 @@ namespace VR33B.UI
             await Dispatcher.InvokeAsync(() => { SamplingThresholdRing.Visibility = Visibility.Collapsed; });
         }
 
+
+        //时间按钮点击事件
+        private void CurrentTimeButton_Click(object sender, RoutedEventArgs e)
+        {
+            DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
+            dataConfigurationWindow.Show();
+        }
+        =======
         private bool _AddressSetting = false;
         private async void AddressBox_KeyDown(object sender, KeyEventArgs e)
         {

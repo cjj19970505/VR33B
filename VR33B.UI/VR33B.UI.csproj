@@ -193,6 +193,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DataConfigurationWindow.xaml.cs">
+      <DependentUpon>DataConfigurationWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GraphicGridPage.xaml.cs">
       <DependentUpon>GraphicGridPage.xaml</DependentUpon>
     </Compile>
@@ -205,6 +208,10 @@
     <Compile Include="VR33BSampleListControl.xaml.cs">
       <DependentUpon>VR33BSampleListControl.xaml</DependentUpon>
     </Compile>
+    <Page Include="DataConfigurationWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="GraphicGridPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
