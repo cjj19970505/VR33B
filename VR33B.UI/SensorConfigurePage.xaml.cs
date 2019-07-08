@@ -112,14 +112,17 @@ namespace VR33B.UI
 
 
         //时间按钮点击事件
-        private void CurrentTimeButton_Click(object sender, RoutedEventArgs e)
+        private async void CurrentTimeButton_Click(object sender, RoutedEventArgs e)
         {
+            
+            
             DataConfigurationWindow dataConfigurationWindow = new DataConfigurationWindow();
             var result = dataConfigurationWindow.ShowDialog();
             if(result.Value)
             {
-                System.Diagnostics.Debug.WriteLine(dataConfigurationWindow.SelectedDateTime);
+                await SettingViewModel.VR33BTerminal.SetDateTimeAsync(dataConfigurationWindow.SelectedDateTime);
             }
+            
         }
         private bool _AddressSetting = false;
         private async void AddressBox_KeyDown(object sender, KeyEventArgs e)
@@ -130,8 +133,6 @@ namespace VR33B.UI
                 await SettingViewModel.VR33BTerminal.SetDeviceAddressAsync(byte.Parse(AddressBox.Text));
                 await Dispatcher.InvokeAsync(() => { AddressBoxProgressRing.Visibility = Visibility.Collapsed; });
             }
-            
-
 
         }
 

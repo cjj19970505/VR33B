@@ -28,7 +28,7 @@
             </StackPanel>
             <StackPanel x:Name="BaudRatePanel" Orientation="Horizontal">
                 <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>
-                <ComboBox x:Name="BaudRateBox" Width="60" ItemsSource="{Binding Path=AvaliableBaudRate}" SelectedValue="{Binding Path=BaudRate}"/>
+                <ComboBox x:Name="BaudRateBox" Width="60" ItemsSource="{Binding Path=AvaliableBaudRate}" SelectedValue="{Binding Path=BaudRate, Mode=TwoWay}"/>
             </StackPanel>
             <StackPanel x:Name="DataBitPanel" Orientation="Horizontal">
                 <TextBlock Text="数据位：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" VerticalAlignment="Center"></TextBlock>

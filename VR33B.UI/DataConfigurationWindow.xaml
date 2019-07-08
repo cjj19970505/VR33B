@@ -9,7 +9,7 @@
         Title="日期设置" Height="450" Width="800" SizeToContent="WidthAndHeight" ResizeMode="NoResize" VisualEdgeMode="Unspecified">
     <Grid>
         <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Calendar x:Name="CombinedCalendar" Margin="-1 -4 -1 0"/>
+            <Calendar x:Name="CombinedCalendar" Margin="-1 -4 -1 0" Language="zh-Hans"/>
             <StackPanel VerticalAlignment="Top">
                 <Viewbox StretchDirection="Both" Stretch="Uniform" Height="286" VerticalAlignment="Top">
                     <materialDesign:Clock x:Name="CombinedClock" VerticalAlignment="Top" DisplayAutomation="CycleWithSeconds" Is24Hours="True" />

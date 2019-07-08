@@ -111,6 +111,19 @@ namespace VR33B.UI
                 e.Handled = true;
             }
         }
+
+        private void CopyButton_Click(object sender, RoutedEventArgs e)
+        {
+            var copySampleValues = ViewModel.DataGridItemSource.ToList();
+            StringBuilder sb = new StringBuilder();
+            foreach(var sampleValue in copySampleValues)
+            {
+                var sv = sampleValue;
+                sb.Append(sv.ToString());
+                sb.AppendLine();
+            }
+            Clipboard.SetData(DataFormats.Text, sb.ToString());
+        }
     }
 
     internal class VR33BSampleListControlViewModel: INotifyPropertyChanged

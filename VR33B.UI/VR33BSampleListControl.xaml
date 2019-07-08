@@ -69,7 +69,11 @@
                     <TextBox x:Name="MaxTimeSpanTextBox" Grid.Row="1" Grid.Column="1" Text="{Binding Path=MaxSampleTimeSpan, Converter={StaticResource ResourceKey=DoubleToStringConverter}, Mode=TwoWay}" Margin="5" VerticalAlignment="Center" PreviewTextInput="TimeSpanTextBox_PreviewTextInput"/>
                 </Grid>
                 <CheckBox x:Name="FilterFromRectBarCheckBox" Grid.Row="0" Grid.Column="2" Content="通过选择区域过滤" IsChecked="{Binding Path=FilterFromRectBar, Mode=TwoWay}"/>
-                <Button x:Name="FilterButton" Content="过滤" Grid.Column="2" Grid.Row="1" Margin="20" HorizontalAlignment="Stretch" Click="FilterButton_Click"/>
+                <StackPanel Grid.Column="2" Grid.Row="1">
+                    <Button x:Name="FilterButton" Content="过滤"  Margin="10,2,10,5" HorizontalAlignment="Stretch" Click="FilterButton_Click"/>
+                    <Button x:Name="CopyButton" Content="复制到剪贴板" Margin="10,2,10,5" Click="CopyButton_Click"/>
+                </StackPanel>
+                
             </Grid>
         </Expander>
         <DataGrid x:Name="SampleDataGrid" AutoGenerateColumns="False" ItemsSource="{Binding Path=DataGridItemSource, Mode=OneWay}" SelectionMode="Single"
@@ -79,7 +83,7 @@
                   Grid.Row="1">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="索引" Binding="{Binding Path=SampleIndex}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
-                <DataGridTextColumn Header="采样时间" Binding="{Binding Path=SampleDateTime}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
+                <DataGridTextColumn Header="采样时间" Binding="{Binding Path=SampleDateTime, StringFormat=yyyy-MM-dd}" IsReadOnly="True" CanUserResize="True" CanUserSort="True"/>
                 <DataGridTextColumn Header="加速度" Binding="{Binding Path=AccelerometerValue}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
                 <DataGridTextColumn Header="温度" Binding="{Binding Path=Temperature}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>
                 <DataGridTextColumn Header="湿度" Binding="{Binding Path=Humidity}" IsReadOnly="True" CanUserResize="True" CanUserSort="False"/>

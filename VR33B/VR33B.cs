@@ -764,6 +764,17 @@ namespace VR33B
             }
             return VR33BSettingResult.Falied;
         }
+
+        public async Task<VR33BSettingResult> SetDateTimeAsync(DateTime dateTime)
+        {
+            var command = new SetDateTimeCommand(this, dateTime);
+            var response = await SendCommandAsync(command);
+            if(response.Success)
+            {
+                return VR33BSettingResult.Succss;
+            }
+            return VR33BSettingResult.Falied;
+        }
         
 
         
@@ -1172,8 +1183,8 @@ namespace VR33B
 
             _SendDataSequence = new (VR33BSendData, TimeSpan)[]
             {
-                (setData, new TimeSpan(0, 0, 0, 0, 100)),
-                (readData, new TimeSpan(0, 0, 0, 0, 50))
+                (setData, new TimeSpan(0, 0, 0, 0, 200)),
+                (readData, new TimeSpan(0, 0, 0, 0, 200))
             };
         }
     }
@@ -1363,8 +1374,8 @@ namespace VR33B
 
             _SendDataSequence = new (VR33BSendData, TimeSpan)[]
             {
-                (setData, new TimeSpan(0, 0, 0, 0, 100)),
-                (readData, new TimeSpan(0, 0, 0, 0, 50))
+                (setData, new TimeSpan(0, 0, 0, 0, 500)),
+                (readData, new TimeSpan(0, 0, 0, 0, 500))
             };
         }
     }

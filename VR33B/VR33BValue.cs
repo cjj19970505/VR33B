@@ -47,7 +47,9 @@ namespace VR33B
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
+            
             sb.Append("[");
+            sb.Append(SampleIndex + "|");
             sb.Append(SampleDateTime + "|");
             sb.Append(AccelerometerValue + "|");
             sb.Append("T:" + Temperature + "|");
@@ -58,12 +60,13 @@ namespace VR33B
 
         public static VR33BSampleValue FromVR33BReceiveData(VR33BReceiveData receiveData, VR33BSetting vr33bSetting, long index, VR33BSampleProcess sampleProcess)
         {
+            int year = BitConverter.ToInt16(new byte[] { receiveData.Data[1], receiveData.Data[0] }, 0);
             int month = receiveData.Data[2];
             int day = receiveData.Data[3];
             int hour = receiveData.Data[4];
             int minute = receiveData.Data[5];
             int second = receiveData.Data[6];
-            DateTime dateTime = new DateTime(2008, month, day, hour, minute, second);
+            DateTime dateTime = new DateTime(year, month, day, hour, minute, second);
             byte[] xBytes = new byte[] { receiveData.Data[8], receiveData.Data[7] };
             byte[] yBytes = new byte[] { receiveData.Data[10], receiveData.Data[9] };
             byte[] zBytes = new byte[] { receiveData.Data[12], receiveData.Data[11] };

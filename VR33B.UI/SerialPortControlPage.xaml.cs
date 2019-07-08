@@ -155,7 +155,7 @@ namespace VR33B.UI
             }
 
         }
-
+        object lockProblem = new object();
         private void ViewModel_SerialRawDataReceived(object sender, byte[] e)
         {
             byte[] buffer = e;
@@ -163,7 +163,7 @@ namespace VR33B.UI
                                  select string.Format("{0:x2}", receiveByte);
             var hexString = string.Join(" ", hexStringArray);
 
-            if (DateTime.Now - _LatestUpdateReceiveBoxDateTime > _UpdateInterval)
+            //if (DateTime.Now - _LatestUpdateReceiveBoxDateTime > _UpdateInterval)
             {
                 _LatestUpdateReceiveBoxDateTime = DateTime.Now;
                 ViewModel.ReceiveBoxText += (" " + hexString);
@@ -335,7 +335,7 @@ namespace VR33B.UI
                 {
                     return;
                 }
-                TerminalSerialPort.BaudRate = TerminalSerialPort.BaudRate;
+                TerminalSerialPort.BaudRate = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
             }
         }
@@ -474,7 +474,7 @@ namespace VR33B.UI
         public SerialPortViewModel()
         {
             AvaliablePortNames = new ObservableCollection<string>();
-            AvaliableBaudRate = new ObservableCollection<int>() { 9600, 115200 };
+            AvaliableBaudRate = new ObservableCollection<int>() { 9600, 115200, 256000 };
             AvaliableDataBits = new ObservableCollection<int>() { 8, 7, 6 };
         }
 

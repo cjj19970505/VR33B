@@ -347,4 +347,57 @@ namespace VR33B
             };
         }
     }
+
+    public class SetDateTimeCommand : ICommand
+    {
+        public DateTime DateTime { get; set; }
+        public int MaximumRepeatCount
+        {
+            get
+            {
+                return 0;
+            }
+        }
+        public (VR33BSendData SendData, TimeSpan IntervalTimeSpan)[] SendDataSequence { get; }
+
+
+        public bool IsResponse(VR33BReceiveData receiveData)
+        {
+            return true;
+        }
+
+        public bool OnTimeout()
+        {
+            return true;
+        }
+
+        public SetDateTimeCommand(VR33BTerminal vr33bTerminal, DateTime dateTime)
+        {
+            DateTime = dateTime;
+            var yearMonthData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0005,
+                Data = new byte[] { (byte)(DateTime.Year%100) , (byte)DateTime.Month }
+            };
+
+            var dayHourData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0006,
+                Data = new byte[] { (byte)(DateTime.Day), (byte)DateTime.Hour }
+            };
+
+            var minuteSecondData = new VR33BSendData
+            {
+                DeviceAddress = vr33bTerminal.LatestSetting.DeviceAddress,
+                ReadOrWrite = VR33BMessageType.Write,
+                RegisterAddress = 0x0007,
+                Data = new byte[] { (byte)(DateTime.Minute), (byte)DateTime.Second }
+            };
+            SendDataSequence = new (VR33BSendData, TimeSpan)[] { (yearMonthData, TimeSpan.FromMilliseconds(500)), (dayHourData, TimeSpan.FromMilliseconds(500)), (minuteSecondData, TimeSpan.FromMilliseconds(500)) };
+        }
+    }
 }
