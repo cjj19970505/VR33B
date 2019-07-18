@@ -12,7 +12,7 @@
             <RowDefinition x:Name="MainRow"></RowDefinition>
             <RowDefinition x:Name="StateRow" Height="30"></RowDefinition>
         </Grid.RowDefinitions>
-        <dragablz:TabablzControl Grid.Row="0" VerticalAlignment="Stretch">
+        <dragablz:TabablzControl x:Name="FunctionTabs" Grid.Row="0" VerticalAlignment="Stretch" FixedHeaderCount="3">
             <dragablz:TabablzControl.InterTabController>
                 <dragablz:InterTabController />
             </dragablz:TabablzControl.InterTabController>
