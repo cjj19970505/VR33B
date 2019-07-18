@@ -456,7 +456,7 @@ namespace VR33B.Storage
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.EnableSensitiveDataLogging();
-            optionsBuilder.UseSqlite(@"Data Source=TestDB.db");
+            optionsBuilder.UseSqlite(@"Data Source=VR33BSampleDB.db3");
         }
     }
 
