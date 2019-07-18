@@ -547,6 +547,31 @@ namespace VR33B
             
         }
 
+        public async Task<VR33BSettingResult> SetBaudRateAsync(VR33BSerialPortBaudRate baudRate)
+        {
+            var command = new SetBaudRateCommand(this, baudRate);
+            await SendCommandAsync(command);
+            if(baudRate == VR33BSerialPortBaudRate._9600)
+            {
+                SerialPort.BaudRate = 9600;
+            }
+            else if(baudRate == VR33BSerialPortBaudRate._115200)
+            {
+                SerialPort.BaudRate = 115200;
+            }
+            else if(baudRate == VR33BSerialPortBaudRate._256000)
+            {
+                SerialPort.BaudRate = 256000;
+            }
+            Thread.Sleep(500);
+            var response = await ReadAllSettingAsync();
+            if(response == VR33BReadResult.Success)
+            {
+                return VR33BSettingResult.Succss;
+            }
+            return VR33BSettingResult.Falied;
+        }
+
         public async Task<VR33BSettingResult> CalibrateXAsync()
         {
             var response = await SendCommandAsync(new CalibrateXCommand(this));
@@ -1160,7 +1185,7 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 1)
+            if (receiveData.ReadOrWrite == VR33BMessageType.Write && receiveData.Data.Length == 1)
             {
                 if(receiveData.Data[0] == (byte)Range)
                 {
@@ -1196,7 +1221,6 @@ namespace VR33B
             _SendDataSequence = new (VR33BSendData, TimeSpan)[]
             {
                 (setData, new TimeSpan(0, 0, 0, 0, 200)),
-                (readData, new TimeSpan(0, 0, 0, 0, 200))
             };
         }
     }

@@ -146,6 +146,18 @@ namespace VR33B.UI
         {
             await SettingViewModel.VR33BTerminal.ResetAllSetting();
         }
+
+        private async void SensorBaudRateBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.RemovedItems.Count == 0 || !SensorBaudRateBox.IsDropDownOpen)
+            {
+                return;
+            }
+            VR33BSerialPortBaudRate targetBaudRate = (VR33BSerialPortBaudRate)SensorBaudRateBox.SelectedValue;
+            SensorBaudRateProgressRing.Visibility = Visibility.Visible;
+            var response = await SettingViewModel.VR33BTerminal.SetBaudRateAsync(targetBaudRate);
+            await Dispatcher.InvokeAsync(() => { SensorBaudRateProgressRing.Visibility = Visibility.Collapsed; });
+        }
     }
 
     public class VR33BSettingViewModel : INotifyPropertyChanged

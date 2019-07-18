@@ -92,7 +92,7 @@
                                 <ProgressBar Visibility="Collapsed" x:Name="AddressBoxProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>
                             <TextBlock Text="波特率：" Style="{DynamicResource MaterialDesignSubheadingTextBlock}" Grid.Column="3" VerticalAlignment="Center"></TextBlock>
-                            <ComboBox x:Name="SensorBaudRateBox" Grid.Column="4" VerticalAlignment="Center" Margin="0, 0, 10, 0" ItemsSource="{Binding Path=BaudRateSource}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=BaudRate, Mode=OneWay}"/>
+                            <ComboBox x:Name="SensorBaudRateBox" Grid.Column="4" VerticalAlignment="Center" Margin="0, 0, 10, 0" ItemsSource="{Binding Path=BaudRateSource}" DisplayMemberPath="Description" SelectedValuePath="Value" SelectedValue="{Binding Path=BaudRate, Mode=OneWay}" SelectionChanged="SensorBaudRateBox_SelectionChanged"/>
                             <Viewbox Grid.Column="5" Margin="0, 0, 10, 0">
                                 <ProgressBar Visibility="Collapsed" x:Name="SensorBaudRateProgressRing" Style="{StaticResource MaterialDesignCircularProgressBar}" Value="35" IsIndeterminate="True" />
                             </Viewbox>

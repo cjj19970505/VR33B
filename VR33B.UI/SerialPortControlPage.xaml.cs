@@ -148,6 +148,7 @@ namespace VR33B.UI
                 }
                 ViewModel.SerialRawDataReceived += ViewModel_SerialRawDataReceived;
                 SerialNoBox.SelectedValue = ViewModel.PortName;
+                ViewModel.InvalidateAll();
             }
             else
             {
@@ -158,6 +159,10 @@ namespace VR33B.UI
         object lockProblem = new object();
         private void ViewModel_SerialRawDataReceived(object sender, byte[] e)
         {
+            if(!ViewModel.CustomSerialPortOperation)
+            {
+                return;
+            }
             byte[] buffer = e;
             var hexStringArray = from receiveByte in buffer
                                  select string.Format("{0:x2}", receiveByte);
@@ -261,7 +266,18 @@ namespace VR33B.UI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StopBits"));
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOpen"));
             }
+        }
+
+        public void InvalidateAll()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("PortName"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("BaudRate"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("DataBits"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("StopBits"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Parity"));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("IsOpen"));
         }
 
         private void _VR33BTerminal_SerialPortRawDataReceived(object sender, byte[] e)
