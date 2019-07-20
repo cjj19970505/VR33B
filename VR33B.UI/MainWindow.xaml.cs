@@ -15,6 +15,8 @@ using System.Windows.Shapes;
 using System.Collections.ObjectModel;
 using System.IO.Ports;
 using VR33B.Storage;
+using System.Xml.Serialization;
+using System.IO;
 
 namespace VR33B.UI
 {
@@ -23,16 +25,36 @@ namespace VR33B.UI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const string PCSerialPortSettingName = "PCSerialPortSetting.xml";
         private static VR33BTerminal _VR33BTerminal;
         public VR33BTerminal VR33BTerminal
         {
             get
             {
-                if(_VR33BTerminal == null)
+                if (_VR33BTerminal == null)
                 {
                     _VR33BTerminal = new VR33BTerminal(new VR33BSqliteStorage(), false);
                     (_VR33BTerminal.VR33BSampleDataStorage as VR33BSqliteStorage).SampleTimeDispatcher = new VR33BSampleTimeDispatcher(_VR33BTerminal);
 
+                    var fileName = PCSerialPortSettingName;
+                    var filePath = Environment.CurrentDirectory + "//" + fileName;
+                    XmlSerializer serializer = new XmlSerializer(typeof(PCSerialPortSetting));
+                    if (!File.Exists(filePath))
+                    {
+                    }
+                    else
+                    {
+                        using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                        {
+                            var serialPortSetting = (PCSerialPortSetting)serializer.Deserialize(settingStream);
+                            _VR33BTerminal.SerialPort.PortName = serialPortSetting.PortName;
+                            _VR33BTerminal.SerialPort.BaudRate = serialPortSetting.BaudRate;
+                            _VR33BTerminal.SerialPort.StopBits = serialPortSetting.StopBits;
+                            _VR33BTerminal.SerialPort.DataBits = serialPortSetting.DataBits;
+                            _VR33BTerminal.SerialPort.Handshake = serialPortSetting.HandShake;
+                            _VR33BTerminal.SerialPort.RtsEnable = serialPortSetting.RtsEnable;
+                        };
+                    }
                 }
                 return _VR33BTerminal;
             }
@@ -43,7 +65,7 @@ namespace VR33B.UI
         public MainWindow()
         {
             InitializeComponent();
-            
+
             (SensorConfigureTab.Content as Frame).ContentRendered += SensorConfigureTabFrame_ContentRendered;
         }
 
@@ -63,6 +85,48 @@ namespace VR33B.UI
         private void SerialPortControlPage_OnStateChanged(string stateMessage)
         {
             StateBlock.Text = stateMessage;
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            var pcSerialSetting = PCSerialPortSetting.FromSerialPort(VR33BTerminal.SerialPort);
+            var fileName = PCSerialPortSettingName;
+            var filePath = Environment.CurrentDirectory + "//" + fileName;
+            XmlSerializer serializer = new XmlSerializer(typeof(PCSerialPortSetting));
+            using (FileStream settingStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+            {
+                serializer.Serialize(settingStream, pcSerialSetting);
+            };
+        }
+    }
+
+    public struct PCSerialPortSetting
+    {
+        /*
+        SerialPort.BaudRate = 115200;
+            SerialPort.StopBits = StopBits.One;
+            SerialPort.DataBits = 8;
+            SerialPort.Handshake = Handshake.None;
+            SerialPort.RtsEnable = true;
+            */
+        public string PortName { get; set; }
+        public int BaudRate { get; set; }
+        public StopBits StopBits { get; set; }
+        public int DataBits { get; set; }
+        public Handshake HandShake { get; set; }
+        public bool RtsEnable { get; set; }
+
+        public static PCSerialPortSetting FromSerialPort(SerialPort serialPort)
+        {
+            return new PCSerialPortSetting
+            {
+                PortName = serialPort.PortName,
+                BaudRate = serialPort.BaudRate,
+                StopBits = serialPort.StopBits,
+                DataBits = serialPort.DataBits,
+                HandShake = serialPort.Handshake,
+                RtsEnable = serialPort.RtsEnable
+            };
         }
     }
 }
