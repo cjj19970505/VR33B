@@ -573,7 +573,7 @@ namespace VR33B
             var response = await SendCommandAsync(new CalibrateXCommand(this));
             if (response.Success)
             {
-                /*
+                
                 var data = response.Response.Data;
                 UInt16 sensitiveX = BitConverter.ToUInt16(new byte[] { data[1], data[0] }, 0);
                 UInt16 zeroX = BitConverter.ToUInt16(new byte[] { data[3], data[2] }, 0);
@@ -583,7 +583,7 @@ namespace VR33B
                 zero.X = zeroX;
                 LatestSetting.AccelerometerSensibility = sensitive;
                 LatestSetting.AccelerometerZero = zero;
-                */
+                
                 return VR33BSettingResult.Succss;
             }
             else

@@ -29,7 +29,7 @@ namespace VR33B
 
         public bool OnTimeout()
         {
-            return true;
+            return false;
         }
 
         public CalibrateXCommand(VR33BTerminal vr33bTerminal)
@@ -41,7 +41,7 @@ namespace VR33B
                 RegisterAddress = 0x0113,
                 Data = new byte[] { 0, 00 }
             };
-            SendDataSequence = new (VR33BSendData, TimeSpan)[]{ (sendData, TimeSpan.FromMilliseconds(100))};
+            SendDataSequence = new (VR33BSendData, TimeSpan)[]{ (sendData, TimeSpan.FromSeconds(15))};
         }
     }
 
