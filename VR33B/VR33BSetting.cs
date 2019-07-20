@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace VR33B
 {
     public enum VR33BAccelerometerRange { [Description("2g")]_2g = 0x02, [Description("4g")]_4g = 0x04, [Description("8g")]_8g = 0x08, [Description("16g")]_16g = 0x16 };
-    public enum VR33BSerialPortBaudRate {[Description("9600")] _9600 = 0x01, [Description("115200")] _115200 = 0x02, [Description("256000")] _256000 = 0x03}
+    public enum VR33BSerialPortBaudRate {[Description("9600")] _9600 = 0x01, [Description("115200")] _115200 = 0x02}
 
     public enum VR33BSerialPortParity { None = 0x01, Even = 0x02, Odd = 0x03 }
     public enum VR33SerialPortStopBits { One = 0x01, Two = 0x02}

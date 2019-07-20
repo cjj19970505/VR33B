@@ -559,10 +559,6 @@ namespace VR33B
             {
                 SerialPort.BaudRate = 115200;
             }
-            else if(baudRate == VR33BSerialPortBaudRate._256000)
-            {
-                SerialPort.BaudRate = 256000;
-            }
             Thread.Sleep(500);
             var response = await ReadAllSettingAsync();
             if(response == VR33BReadResult.Success)

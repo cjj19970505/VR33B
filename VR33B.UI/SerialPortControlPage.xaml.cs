@@ -490,7 +490,7 @@ namespace VR33B.UI
         public SerialPortViewModel()
         {
             AvaliablePortNames = new ObservableCollection<string>();
-            AvaliableBaudRate = new ObservableCollection<int>() { 9600, 115200, 256000 };
+            AvaliableBaudRate = new ObservableCollection<int>() { 9600, 115200 };
             AvaliableDataBits = new ObservableCollection<int>() { 8, 7, 6 };
         }
 
