@@ -129,7 +129,7 @@ namespace VR33B
         {
             get
             {
-                return 10;
+                return 0;
             }
         }
 
@@ -144,16 +144,12 @@ namespace VR33B
 
         public bool IsResponse(VR33BReceiveData receiveData)
         {
-            if (receiveData.ReadOrWrite == VR33BMessageType.Read && receiveData.Data.Length == 0x17)
-            {
-                return true;
-            }
-            return false;
+            return true;
         }
 
         public bool OnTimeout()
         {
-            return false;
+            return true;
         }
 
         public ResetCommand(VR33BTerminal vr33bTerminal)
@@ -165,18 +161,10 @@ namespace VR33B
                 RegisterAddress = 0x0028,
                 Data = new byte[] { 0x55, 0xaa }
             };
-            var readData = new VR33BSendData
-            {
-                DeviceAddress = 0x01,
-                ReadOrWrite = VR33BMessageType.Read,
-                RegisterAddress = 0x0015,
-                Data = new byte[] { 0, 0x0c }
-            };
 
             _SendDataSequence = new (VR33BSendData, TimeSpan)[]
             {
                 (setData, new TimeSpan(0, 0, 0, 0, 1000)),
-                (readData, new TimeSpan(0, 0, 0, 0, 50))
             };
         }
     }

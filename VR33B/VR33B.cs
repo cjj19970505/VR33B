@@ -773,6 +773,8 @@ namespace VR33B
             var command = new ResetCommand(this);
             LatestSetting.DeviceAddress = 0x01;
             var response = await SendCommandAsync(command);
+            Thread.Sleep(500);
+            SerialPort.BaudRate = 115200;
             if(response.Success)
             {
                 var readResult = await ReadAllSettingAsync();
