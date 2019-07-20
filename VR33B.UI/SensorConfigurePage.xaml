@@ -18,13 +18,8 @@
         <local:ConnectionStateAndSamplingToEnableConverter x:Key="ConnectionStateAndSamplingToEnableConverter"/>
     </Page.Resources>
     <Grid>
-        <Grid>
-            <Grid.IsEnabled>
-                <MultiBinding Converter="{StaticResource ConnectionStateAndSamplingToEnableConverter}" Mode="OneWay">
-                    <Binding Path="ConnectionState"/>
-                    <Binding Path="Sampling"/>
-                </MultiBinding>
-            </Grid.IsEnabled>
+        <Grid Margin="5">
+            
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.3*"></ColumnDefinition>
                 <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -76,6 +71,12 @@
                     <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
+                <Grid.IsEnabled>
+                    <MultiBinding Converter="{StaticResource ConnectionStateAndSamplingToEnableConverter}" Mode="OneWay">
+                        <Binding Path="ConnectionState"/>
+                        <Binding Path="Sampling"/>
+                    </MultiBinding>
+                </Grid.IsEnabled>
 
                 <!--传感器传输参数设置区域-->
                 <Grid Grid.Row="0">
