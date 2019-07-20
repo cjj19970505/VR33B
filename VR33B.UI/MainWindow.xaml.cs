@@ -34,8 +34,6 @@ namespace VR33B.UI
                 if (_VR33BTerminal == null)
                 {
                     _VR33BTerminal = new VR33BTerminal(new VR33BSqliteStorage(), false);
-                    (_VR33BTerminal.VR33BSampleDataStorage as VR33BSqliteStorage).SampleTimeDispatcher = new VR33BSampleTimeDispatcher(_VR33BTerminal);
-
                     var fileName = PCSerialPortSettingName;
                     var filePath = Environment.CurrentDirectory + "//" + fileName;
                     XmlSerializer serializer = new XmlSerializer(typeof(PCSerialPortSetting));
@@ -55,6 +53,9 @@ namespace VR33B.UI
                             _VR33BTerminal.SerialPort.RtsEnable = serialPortSetting.RtsEnable;
                         };
                     }
+                    (_VR33BTerminal.VR33BSampleDataStorage as VR33BSqliteStorage).SampleTimeDispatcher = new VR33BSampleTimeDispatcher(_VR33BTerminal);
+
+                    
                 }
                 return _VR33BTerminal;
             }
