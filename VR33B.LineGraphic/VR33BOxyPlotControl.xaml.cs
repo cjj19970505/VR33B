@@ -309,7 +309,7 @@ namespace VR33B.LineGraphic
             ZLineSeries.Color = OxyColors.Blue;
             ZLineSeries.MarkerType = MarkerType.Circle;
             ZLineSeries.MarkerFill = ZLineSeries.Color;
-            ZLineSeries.Title = "Y-Axis";
+            ZLineSeries.Title = "Z-Axis";
 
             IndicatorSeries = new LineSeries();
             IndicatorSeries.Color = OxyColors.Black;
